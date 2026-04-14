@@ -1,4 +1,5 @@
 const Patient = require("../models/Patient");
+const Report = require("../models/Report");
 
 const createPatientProfile = async (req, res) => {
   try {
@@ -69,8 +70,82 @@ const updatePatientProfile = async (req, res) => {
   }
 };
 
+const createPatientReport = async (req, res) => {
+  try {
+    const { title, description, reportType, reportDate, doctorName, hospitalName, fileUrl } = req.body;
+    const { userId } = req.params;
+
+    if (!title || !reportDate) {
+      return res.status(400).json({ message: "title and reportDate are required" });
+    }
+
+    const patient = await Patient.findOne({ userId });
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient profile not found" });
+    }
+
+    const report = await Report.create({
+      userId,
+      title,
+      description,
+      reportType,
+      reportDate,
+      doctorName,
+      hospitalName,
+      fileUrl
+    });
+
+    res.status(201).json({
+      message: "Medical report added successfully",
+      report
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getPatientReports = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const reports = await Report.find({ userId }).sort({ reportDate: -1, createdAt: -1 });
+
+    res.status(200).json({
+      message: "Medical reports fetched successfully",
+      count: reports.length,
+      reports
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deletePatientReport = async (req, res) => {
+  try {
+    const { reportId } = req.params;
+
+    const report = await Report.findById(reportId);
+
+    if (!report) {
+      return res.status(404).json({ message: "Medical report not found" });
+    }
+
+    await Report.findByIdAndDelete(reportId);
+
+    res.status(200).json({
+      message: "Medical report deleted successfully"
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createPatientProfile,
   getPatientProfile,
-  updatePatientProfile
+  updatePatientProfile,
+  createPatientReport,
+  getPatientReports,
+  deletePatientReport
 };

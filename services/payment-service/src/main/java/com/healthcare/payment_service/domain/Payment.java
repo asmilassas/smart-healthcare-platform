@@ -24,6 +24,8 @@ public class Payment {
 
     private Status status;
 
+    private String payHerePaymentId;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -70,6 +72,13 @@ public class Payment {
     }
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getPayHerePaymentId() {
+        return payHerePaymentId;
+    }
+    public void setPayHerePaymentId(String payHerePaymentId) {
+        this.payHerePaymentId = payHerePaymentId;
     }
 
     public LocalDateTime getCreatedAt() {

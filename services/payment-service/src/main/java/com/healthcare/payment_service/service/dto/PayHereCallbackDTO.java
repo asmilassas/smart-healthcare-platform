@@ -2,31 +2,39 @@ package com.healthcare.payment_service.service.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PayHereCallbackDTO {
 
+    @NotBlank(message = "Merchant ID is required")
     @JsonProperty("merchant_id")
     private String merchantId;
 
     // paymentId
+    @NotBlank(message = "Order ID is required")
     @JsonProperty("order_id")
     private String orderId;
 
     // PayHere's own Id
+    @NotBlank(message = "PayHere Payment ID is required")
     @JsonProperty("payment_id")
     private String paymentId;
 
+    @NotBlank(message = "Amount is required")
     @JsonProperty("payhere_amount")
     private String payhereAmount;
 
+    @NotBlank(message = "Currency is required")
     @JsonProperty("payhere_currency")
     private String payhereCurrency;
 
+    @NotBlank(message = "Status code is required")
     @JsonProperty("status_code")
     private String statusCode;
 
     // used for signature verification
+    @NotBlank(message = "Signature is required")
     @JsonProperty("md5sig")
     private String md5sig;
 

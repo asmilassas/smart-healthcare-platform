@@ -3,7 +3,6 @@ package com.healthcare.payment_service.service;
 import com.healthcare.payment_service.service.dto.PayHereCallbackDTO;
 import com.healthcare.payment_service.service.dto.PaymentRequestDTO;
 import com.healthcare.payment_service.service.dto.PaymentResponseDTO;
-import org.apache.coyote.BadRequestException;
 
 /**
  * Service interface for managing Payment.
@@ -24,7 +23,7 @@ public interface PaymentService {
      * @param payHereCallbackDTO contains information provided by PayHere.
      * @return the persisted entity.
      */
-    PaymentResponseDTO callbackPayment(PayHereCallbackDTO payHereCallbackDTO) throws BadRequestException;
+    PaymentResponseDTO callbackPayment(PayHereCallbackDTO payHereCallbackDTO);
 
     /**
      * Get Payment Status via appointmentId

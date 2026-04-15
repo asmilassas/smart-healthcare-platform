@@ -5,8 +5,10 @@ import com.healthcare.payment_service.domain.enumeration.Status;
 import com.healthcare.payment_service.repository.PaymentRepository;
 import com.healthcare.payment_service.service.PaymentService;
 import com.healthcare.payment_service.service.dto.PayHereCallbackDTO;
+import com.healthcare.payment_service.service.dto.PaymentInitiateResponseDTO;
 import com.healthcare.payment_service.service.dto.PaymentRequestDTO;
 import com.healthcare.payment_service.service.dto.PaymentResponseDTO;
+import com.healthcare.payment_service.service.mapper.PaymentInitiateResponseMapper;
 import com.healthcare.payment_service.service.mapper.PaymentMapper;
 import com.healthcare.payment_service.validation.PaymentValidation;
 import org.slf4j.Logger;
@@ -28,20 +30,23 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentValidation paymentValidation;
     private final PaymentMapper paymentMapper;
+    private final PaymentInitiateResponseMapper paymentInitiateResponseMapper;
 
     public PaymentServiceImpl(
         PaymentRepository paymentRepository,
         PaymentValidation paymentValidation,
-        PaymentMapper paymentMapper
+        PaymentMapper paymentMapper,
+        PaymentInitiateResponseMapper paymentInitiateResponseMapper
     ) {
         this.paymentRepository = paymentRepository;
         this.paymentValidation = paymentValidation;
         this.paymentMapper = paymentMapper;
+        this.paymentInitiateResponseMapper = paymentInitiateResponseMapper;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public PaymentResponseDTO initiatePayment(final PaymentRequestDTO paymentRequestDTO) {
+    public PaymentInitiateResponseDTO initiatePayment(final PaymentRequestDTO paymentRequestDTO) {
 
         log.info("Request to initiate payment : {}", paymentRequestDTO);
 
@@ -54,7 +59,7 @@ public class PaymentServiceImpl implements PaymentService {
         log.info("Saving initiated payment: {}", payment);
         payment = paymentRepository.save(payment);
 
-        return paymentMapper.toPaymentResponseDTO(payment);
+        return paymentInitiateResponseMapper.toPaymentInitiateResponseDTO(payment, paymentRequestDTO);
     }
 
 

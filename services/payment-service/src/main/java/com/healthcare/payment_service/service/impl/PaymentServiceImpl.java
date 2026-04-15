@@ -1,5 +1,6 @@
 package com.healthcare.payment_service.service.impl;
 
+import com.healthcare.payment_service.client.AppointmentServiceClient;
 import com.healthcare.payment_service.domain.Payment;
 import com.healthcare.payment_service.domain.enumeration.Status;
 import com.healthcare.payment_service.repository.PaymentRepository;
@@ -31,17 +32,20 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentValidation paymentValidation;
     private final PaymentMapper paymentMapper;
     private final PaymentInitiateResponseMapper paymentInitiateResponseMapper;
+    private final AppointmentServiceClient appointmentServiceClient;
 
     public PaymentServiceImpl(
         PaymentRepository paymentRepository,
         PaymentValidation paymentValidation,
         PaymentMapper paymentMapper,
-        PaymentInitiateResponseMapper paymentInitiateResponseMapper
+        PaymentInitiateResponseMapper paymentInitiateResponseMapper,
+        AppointmentServiceClient appointmentServiceClient
     ) {
         this.paymentRepository = paymentRepository;
         this.paymentValidation = paymentValidation;
         this.paymentMapper = paymentMapper;
         this.paymentInitiateResponseMapper = paymentInitiateResponseMapper;
+        this.appointmentServiceClient = appointmentServiceClient;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -80,6 +84,12 @@ public class PaymentServiceImpl implements PaymentService {
 
         log.info("Payment updated: {}", payment);
         final Payment savedPayment = paymentRepository.save(payment);
+
+        // TODO: confirm appointment
+        // Confirm appointment if payment is successful
+//        if(savedPayment.getStatus().equals(Status.SUCCESS)) {
+//            appointmentServiceClient.confirmAppointment(payHereCallbackDTO.getOrderId());
+//        }
 
         return paymentMapper.toPaymentResponseDTO(savedPayment);
     }

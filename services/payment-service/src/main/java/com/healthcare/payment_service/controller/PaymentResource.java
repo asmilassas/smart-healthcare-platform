@@ -3,6 +3,7 @@ package com.healthcare.payment_service.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healthcare.payment_service.service.PaymentService;
 import com.healthcare.payment_service.service.dto.PayHereCallbackDTO;
+import com.healthcare.payment_service.service.dto.PaymentInitiateResponseDTO;
 import com.healthcare.payment_service.service.dto.PaymentRequestDTO;
 import com.healthcare.payment_service.service.dto.PaymentResponseDTO;
 import jakarta.validation.ConstraintViolation;
@@ -53,10 +54,10 @@ public class PaymentResource {
     @PostMapping("/initiate")
     @PreAuthorize("isAuthenticated()")
     //    @PreAuthorize("hasRole('PATIENT')")
-    public ResponseEntity<PaymentResponseDTO> initiatePayment(@Valid @RequestBody PaymentRequestDTO paymentRequestDTO) {
+    public ResponseEntity<PaymentInitiateResponseDTO> initiatePayment(@Valid @RequestBody PaymentRequestDTO paymentRequestDTO) {
         log.debug("REST request to initiate payment : {}", paymentRequestDTO);
 
-        final PaymentResponseDTO result = paymentService.initiatePayment(paymentRequestDTO);
+        final PaymentInitiateResponseDTO result = paymentService.initiatePayment(paymentRequestDTO);
 
         return ResponseEntity.ok().body(result);
     }

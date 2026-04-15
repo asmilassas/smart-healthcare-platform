@@ -1,6 +1,7 @@
 package com.healthcare.payment_service.service;
 
 import com.healthcare.payment_service.service.dto.PayHereCallbackDTO;
+import com.healthcare.payment_service.service.dto.PaymentInitiateResponseDTO;
 import com.healthcare.payment_service.service.dto.PaymentRequestDTO;
 import com.healthcare.payment_service.service.dto.PaymentResponseDTO;
 
@@ -15,7 +16,7 @@ public interface PaymentService {
      * @param paymentRequestDTO contains information to initiate a payment.
      * @return the persisted entity.
      */
-    PaymentResponseDTO initiatePayment(PaymentRequestDTO paymentRequestDTO);
+    PaymentInitiateResponseDTO initiatePayment(PaymentRequestDTO paymentRequestDTO);
 
     /**
      * Callback method for PayHere.

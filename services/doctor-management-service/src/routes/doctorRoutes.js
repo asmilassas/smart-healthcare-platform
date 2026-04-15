@@ -5,6 +5,7 @@ const {
   getDoctorProfile,
   updateDoctorProfile,
   getAllDoctors,
+  getAllDoctorsAdmin,
   getDoctorAvailability,
   setDoctorAvailability,
   verifyDoctor,
@@ -16,15 +17,16 @@ const {
 
 const router = express.Router();
 
-// Public 
+// Browseable doctors (verified + available only)
 router.get("/", protect, getAllDoctors);
 router.post("/", protect, authorize("doctor"), createDoctorProfile);
 
-// Admin endpoints 
+// Admin endpoints — must come BEFORE /:userId to avoid route collision
 router.get("/admin/unverified", protect, authorize("admin"), getUnverifiedDoctors);
+router.get("/admin/all-doctors", protect, authorize("admin"), getAllDoctorsAdmin);
 router.patch("/:userId/verify", protect, authorize("admin"), verifyDoctor);
 
-// Prescription endpoints 
+// Prescription endpoints — must come BEFORE /:userId
 router.post("/prescriptions", protect, authorize("doctor"), issuePrescription);
 router.get(
   "/prescriptions/patient/:patientId",
@@ -39,11 +41,11 @@ router.get(
   getPrescriptionByAppointment
 );
 
-// Doctor profile 
+// Doctor profile — /:userId must come AFTER all fixed paths
 router.get("/:userId", protect, getDoctorProfile);
 router.put("/:userId", protect, authorize("doctor", "admin"), updateDoctorProfile);
 
-// Availability 
+// Availability
 router.get("/:userId/availability", protect, getDoctorAvailability);
 router.put("/:userId/availability", protect, authorize("doctor"), setDoctorAvailability);
 

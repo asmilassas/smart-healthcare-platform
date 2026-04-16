@@ -1,0 +1,15 @@
+.search-bar-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.specialty-select {
+  width: 200px;
+}

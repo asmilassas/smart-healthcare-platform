@@ -1,11 +1,8 @@
 const axios = require("axios");
 const Appointment = require("../models/Appointment");
 
-const DOCTOR_SERVICE_URL = process.env.DOCTOR_SERVICE_URL || "http://doctor-management-service:5002";
-
-// Fetch doctor info from doctor-management-service.
-// Forwards the caller's Bearer token so the doctor service can authorise the request.
 const fetchDoctorInfo = async (doctorUserId, token) => {
+  const DOCTOR_SERVICE_URL = process.env.DOCTOR_SERVICE_URL || "http://127.0.0.1:5002";
   const response = await axios.get(
     `${DOCTOR_SERVICE_URL}/api/doctors/${doctorUserId}`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -13,8 +10,8 @@ const fetchDoctorInfo = async (doctorUserId, token) => {
   return response.data;
 };
 
-// Mark a specific time slot as booked / free in doctor-management-service.
 const updateSlotStatus = async (doctorUserId, availability, token) => {
+  const DOCTOR_SERVICE_URL = process.env.DOCTOR_SERVICE_URL || "http://127.0.0.1:5002";
   await axios.put(
     `${DOCTOR_SERVICE_URL}/api/doctors/${doctorUserId}/availability`,
     { availability },
@@ -22,7 +19,6 @@ const updateSlotStatus = async (doctorUserId, availability, token) => {
   );
 };
 
-// Patient: Book Appointment
 // POST /api/appointments
 const bookAppointment = async (req, res) => {
   try {
@@ -41,44 +37,41 @@ const bookAppointment = async (req, res) => {
       });
     }
 
-    // Fetch doctor details (verifies doctor exists and is available)
     let doctor;
     try {
       const token = req.headers.authorization.split(" ")[1];
       doctor = await fetchDoctorInfo(doctorId, token);
     } catch (err) {
+      console.error("fetchDoctorInfo failed:", err.message);
       return res.status(404).json({ message: "Doctor not found or unavailable" });
     }
 
-    if (!doctor.isVerified) {
-      return res.status(400).json({ message: "This doctor is not yet verified" });
+    if (!doctor.isVerified || doctor.pendingReVerification) {
+      return res.status(400).json({
+        message: "This doctor is not yet verified or is pending re-verification"
+      });
     }
 
-    // Check for double-booking: same doctor, same date, same slot, not cancelled
     const bookingDate = new Date(appointmentDate);
+
     const conflict = await Appointment.findOne({
       doctorId,
       appointmentDate: bookingDate,
       "timeSlot.startTime": timeSlot.startTime,
       status: { $nin: ["cancelled"] }
     });
-
     if (conflict) {
       return res.status(409).json({ message: "This time slot is already booked" });
     }
 
-    // Check patient doesn't double-book themselves
     const selfConflict = await Appointment.findOne({
       patientId: req.user.id,
       appointmentDate: bookingDate,
       "timeSlot.startTime": timeSlot.startTime,
       status: { $nin: ["cancelled"] }
     });
-
     if (selfConflict) {
-      return res.status(409).json({
-        message: "You already have an appointment at this time"
-      });
+      return res.status(409).json({ message: "You already have an appointment at this time" });
     }
 
     const appointment = await Appointment.create({
@@ -103,57 +96,37 @@ const bookAppointment = async (req, res) => {
   }
 };
 
-// Patient: Get Own Appointments
 // GET /api/appointments/my
-// Returns all appointments for the logged-in patient.
 const getMyAppointments = async (req, res) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
-
+    const { status, page = 1, limit = 50 } = req.query;
     const filter = { patientId: req.user.id };
     if (status) filter.status = status;
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const total = await Appointment.countDocuments(filter);
     const appointments = await Appointment.find(filter)
       .sort({ appointmentDate: -1 })
       .skip(skip)
       .limit(parseInt(limit));
-
-    res.status(200).json({
-      total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / parseInt(limit)),
-      appointments
-    });
+    res.status(200).json({ total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)), appointments });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Doctor: Get Own Appointments
 // GET /api/appointments/doctor/my
-// Returns all appointments for the logged-in doctor.
 const getDoctorAppointments = async (req, res) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
-
+    const { status, page = 1, limit = 50 } = req.query;
     const filter = { doctorId: req.user.id };
     if (status) filter.status = status;
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const total = await Appointment.countDocuments(filter);
     const appointments = await Appointment.find(filter)
-      .sort({ appointmentDate: 1 }) // Upcoming first for doctors
+      .sort({ appointmentDate: 1 })
       .skip(skip)
       .limit(parseInt(limit));
-
-    res.status(200).json({
-      total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / parseInt(limit)),
-      appointments
-    });
+    res.status(200).json({ total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)), appointments });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -163,245 +136,135 @@ const getDoctorAppointments = async (req, res) => {
 const getAppointmentById = async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
-
-    // Ownership check — admin bypasses
-    if (req.user.role === "patient" && appointment.patientId !== req.user.id) {
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    if (req.user.role === "patient" && appointment.patientId !== req.user.id)
       return res.status(403).json({ message: "Access denied" });
-    }
-    if (req.user.role === "doctor" && appointment.doctorId !== req.user.id) {
+    if (req.user.role === "doctor" && appointment.doctorId !== req.user.id)
       return res.status(403).json({ message: "Access denied" });
-    }
-
     res.status(200).json(appointment);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Doctor: Accept / Reject Appointment
 // PATCH /api/appointments/:id/respond
 const respondToAppointment = async (req, res) => {
   try {
     const { action, doctorNotes } = req.body;
-
-    if (!["confirm", "cancel"].includes(action)) {
+    if (!["confirm", "cancel"].includes(action))
       return res.status(400).json({ message: "action must be 'confirm' or 'cancel'" });
-    }
-
     const appointment = await Appointment.findById(req.params.id);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
-
-    if (appointment.doctorId !== req.user.id) {
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    if (appointment.doctorId !== req.user.id)
       return res.status(403).json({ message: "You can only respond to your own appointments" });
-    }
-
-    if (appointment.status !== "pending") {
-      return res.status(400).json({
-        message: `Cannot respond to an appointment with status '${appointment.status}'`
-      });
-    }
-
+    if (appointment.status !== "pending")
+      return res.status(400).json({ message: `Cannot respond to an appointment with status '${appointment.status}'` });
     appointment.status = action === "confirm" ? "confirmed" : "cancelled";
     if (doctorNotes) appointment.doctorNotes = doctorNotes;
-
     await appointment.save();
-
-    res.status(200).json({
-      message: `Appointment ${appointment.status} successfully`,
-      appointment
-    });
+    res.status(200).json({ message: `Appointment ${appointment.status} successfully`, appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Patient: Cancel Appointment
 // PATCH /api/appointments/:id/cancel
 const cancelAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
-
-    if (appointment.patientId !== req.user.id) {
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    if (appointment.patientId !== req.user.id)
       return res.status(403).json({ message: "You can only cancel your own appointments" });
-    }
-
-    if (!["pending", "confirmed"].includes(appointment.status)) {
-      return res.status(400).json({
-        message: `Cannot cancel an appointment with status '${appointment.status}'`
-      });
-    }
-
+    if (!["pending", "confirmed"].includes(appointment.status))
+      return res.status(400).json({ message: `Cannot cancel an appointment with status '${appointment.status}'` });
     appointment.status = "cancelled";
     await appointment.save();
-
-    res.status(200).json({
-      message: "Appointment cancelled successfully",
-      appointment
-    });
+    res.status(200).json({ message: "Appointment cancelled successfully", appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Doctor: Mark Appointment as Completed
 // PATCH /api/appointments/:id/complete
 const completeAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
-
-    if (appointment.doctorId !== req.user.id) {
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    if (appointment.doctorId !== req.user.id)
       return res.status(403).json({ message: "Access denied" });
-    }
-
-    if (appointment.status !== "confirmed") {
-      return res.status(400).json({
-        message: "Only confirmed appointments can be marked as completed"
-      });
-    }
-
+    if (appointment.status !== "confirmed")
+      return res.status(400).json({ message: "Only confirmed appointments can be marked as completed" });
     appointment.status = "completed";
     await appointment.save();
-
-    res.status(200).json({
-      message: "Appointment marked as completed",
-      appointment
-    });
+    res.status(200).json({ message: "Appointment marked as completed", appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Update Payment
 // PATCH /api/appointments/:id/payment
 const updatePaymentStatus = async (req, res) => {
   try {
     const { paymentStatus, paymentId } = req.body;
-
-    if (!["paid", "refunded"].includes(paymentStatus)) {
+    if (!["paid", "refunded"].includes(paymentStatus))
       return res.status(400).json({ message: "Invalid paymentStatus" });
-    }
-
     const appointment = await Appointment.findByIdAndUpdate(
-      req.params.id,
-      { paymentStatus, paymentId },
-      { new: true }
+      req.params.id, { paymentStatus, paymentId }, { new: true }
     );
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
-
-    res.status(200).json({
-      message: "Payment status updated",
-      appointment
-    });
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    res.status(200).json({ message: "Payment status updated", appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Video Room
 // PATCH /api/appointments/:id/video-room
 const attachVideoRoom = async (req, res) => {
   try {
     const { videoRoomId } = req.body;
-
-    if (!videoRoomId) {
-      return res.status(400).json({ message: "videoRoomId is required" });
-    }
-
+    if (!videoRoomId) return res.status(400).json({ message: "videoRoomId is required" });
     const appointment = await Appointment.findByIdAndUpdate(
-      req.params.id,
-      { videoRoomId },
-      { new: true }
+      req.params.id, { videoRoomId }, { new: true }
     );
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
-
-    res.status(200).json({
-      message: "Video room attached",
-      appointment
-    });
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    res.status(200).json({ message: "Video room attached", appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Attach Prescription
 // PATCH /api/appointments/:id/prescription
-// Called by doctor to link a prescription.
 const attachPrescription = async (req, res) => {
   try {
     const { prescriptionId } = req.body;
-
-    if (!prescriptionId) {
-      return res.status(400).json({ message: "prescriptionId is required" });
-    }
-
+    if (!prescriptionId) return res.status(400).json({ message: "prescriptionId is required" });
     const appointment = await Appointment.findById(req.params.id);
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
-
-    if (req.user.role === "doctor" && appointment.doctorId !== req.user.id) {
+    if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+    if (req.user.role === "doctor" && appointment.doctorId !== req.user.id)
       return res.status(403).json({ message: "Access denied" });
-    }
-
     appointment.prescriptionId = prescriptionId;
     await appointment.save();
-
-    res.status(200).json({
-      message: "Prescription linked to appointment",
-      appointment
-    });
+    res.status(200).json({ message: "Prescription linked to appointment", appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Admin: All Appointments
 // GET /api/appointments/admin/all
-// Returns all appointments in the system with optional filters.
 const getAllAppointments = async (req, res) => {
   try {
-    const { status, doctorId, patientId, page = 1, limit = 20 } = req.query;
-
+    const { status, doctorId, patientId, page = 1, limit = 50 } = req.query;
     const filter = {};
     if (status) filter.status = status;
     if (doctorId) filter.doctorId = doctorId;
     if (patientId) filter.patientId = patientId;
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const total = await Appointment.countDocuments(filter);
     const appointments = await Appointment.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
-
-    res.status(200).json({
-      total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / parseInt(limit)),
-      appointments
-    });
+    res.status(200).json({ total, page: parseInt(page), totalPages: Math.ceil(total / parseInt(limit)), appointments });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

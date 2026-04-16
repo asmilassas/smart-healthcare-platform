@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 
-// Availability slot schema: each day can have multiple time slots
 const timeSlotSchema = new mongoose.Schema(
   {
-    startTime: { type: String, required: true }, 
-    endTime: { type: String, required: true },
-    isBooked: { type: Boolean, default: false }
+    startTime: { type: String, required: true },
+    endTime:   { type: String, required: true },
+    isBooked:  { type: Boolean, default: false }
   },
   { _id: true }
 );
@@ -14,7 +13,7 @@ const availabilitySchema = new mongoose.Schema(
   {
     dayOfWeek: {
       type: String,
-      enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      enum: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
       required: true
     },
     slots: [timeSlotSchema]
@@ -24,7 +23,6 @@ const availabilitySchema = new mongoose.Schema(
 
 const doctorSchema = new mongoose.Schema(
   {
-    // Links to the User document in auth-service
     userId: {
       type: String,
       required: true,
@@ -43,6 +41,12 @@ const doctorSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+      required: true,
+      trim: true
+    },
+    hospital: {
+      type: String,
+      required: true,
       trim: true
     },
     specialty: {
@@ -55,7 +59,8 @@ const doctorSchema = new mongoose.Schema(
       default: []
     },
     experience: {
-      type: Number, 
+      type: Number,
+      required: true,
       default: 0
     },
     consultationFee: {
@@ -72,7 +77,13 @@ const doctorSchema = new mongoose.Schema(
     },
     isVerified: {
       type: Boolean,
-      default: false // Admin must verify the doctor
+      default: false
+    },
+    // True when doctor updates their profile after initial verification —
+    // admin must re-verify before the doctor shows up in search results again.
+    pendingReVerification: {
+      type: Boolean,
+      default: false
     },
     isAvailable: {
       type: Boolean,

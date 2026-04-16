@@ -1,0 +1,13 @@
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\AiSymptomServiceApplication.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\client\GroqClient.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\config\JwtAuthenticationFilter.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\config\JwtUtil.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\config\MongoConfig.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\config\RestTemplateConfig.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\config\SecurityConfig.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\controller\SymptomResource.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\service\dto\SymptomRequestDTO.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\service\dto\SymptomResponseDTO.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\service\impl\SymptomServiceImpl.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\service\SymptomService.java
+D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\src\main\java\com\healthcare\ai_symptom_service\util\PromptBuilder.java

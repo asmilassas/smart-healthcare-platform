@@ -32,6 +32,15 @@ public class SymptomServiceImpl implements SymptomService {
 
     @Override
     public SymptomResponseDTO analyzeSymptoms(SymptomRequestDTO request) {
+
+//        Hardcoded response for testing
+//        return new SymptomResponseDTO(
+//                List.of("Common Cold", "Influenza"),
+//                List.of("General Practitioner", "Internal Medicine"),
+//                "Low",
+//                DISCLAIMER
+//        );
+
         String prompt = PromptBuilder.buildSymptomPrompt(request.getSymptoms());
 
         try {

@@ -85,11 +85,12 @@ public class PaymentServiceImpl implements PaymentService {
         log.info("Payment updated: {}", payment);
         final Payment savedPayment = paymentRepository.save(payment);
 
-        // TODO: confirm appointment
-        // Confirm appointment if payment is successful
-//        if(savedPayment.getStatus().equals(Status.SUCCESS)) {
-//            appointmentServiceClient.confirmAppointment(payHereCallbackDTO.getOrderId());
-//        }
+        if (savedPayment.getStatus().equals(Status.SUCCESS)) {
+            appointmentServiceClient.updatePaymentStatus(
+                    savedPayment.getAppointmentId(),
+                    savedPayment.getId()
+            );
+        }
 
         return paymentMapper.toPaymentResponseDTO(savedPayment);
     }

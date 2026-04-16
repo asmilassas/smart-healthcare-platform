@@ -1,0 +1,56 @@
+services:
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth-service
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/auth_db
+      JWT_SECRET: supersecretkey
+      NOTIFICATION_SERVICE_URL: http://notification-service:5002/api/notifications
+    depends_on:
+      - mongo
+
+  patient-service:
+    build: ./services/patient-service
+    container_name: patient-service
+    ports:
+      - "5001:5001"
+    environment:
+      PORT: 5001
+      MONGO_URI: mongodb://mongo:27017/patient_db
+    depends_on:
+      - mongo
+
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
+    ports:
+      - "5002:5002"
+    environment:
+      PORT: 5002
+      EMAIL_USER: your_email@gmail.com
+      EMAIL_PASS: your_new_app_password
+
+  telemedicine-service:
+    build: ./services/telemedicine-service
+    container_name: telemedicine-service
+    ports:
+      - "5003:5003"
+    environment:
+      PORT: 5003
+      MONGO_URI: mongodb://mongo:27017/telemedicine_db
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

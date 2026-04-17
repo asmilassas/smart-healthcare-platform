@@ -5,6 +5,8 @@ import axios from 'axios'
 //  /api/patients → patient-service :5001
 //  /api/doctors → doctor-management-service :5002
 //  /api/appointments → appointment-service :5003
+//  /api/payments → payment-service :8083
+//  /api/ai → ai-symptom-service :8084
 
 function makeClient(baseURL) {
   const client = axios.create({ baseURL })
@@ -58,4 +60,8 @@ export const api = {
 
     // AI Service
   checkSymptoms: (data) => client.post('/api/ai/symptom-check', data),
+
+  // Payment Service
+  initiatePayment: (data) => client.post('/api/payments/initiate', data),
+  getPaymentStatus: (appointmentId) => client.get(`/api/payments/${appointmentId}`),
 }

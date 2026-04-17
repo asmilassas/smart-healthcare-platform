@@ -31,6 +31,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '^/api/payments(/.*)?$': {
+        target: 'http://127.0.0.1:8083',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })

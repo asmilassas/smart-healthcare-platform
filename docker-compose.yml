@@ -45,7 +45,7 @@ services:
       - mongo
 
   payment-service:
-    build: ./payment-service
+    build: ./services/payment-service
     container_name: payment-service
     ports:
       - "8083:8083"
@@ -59,7 +59,7 @@ services:
       PATIENT_SERVICE_URL: http://patient-service:5001
 
   ai-symptom-checker:
-    build: ./ai-symptom-checker
+    build: ./services/ai-symptom-checker
     container_name: ai-symptom-checker
     ports:
       - "8084:8084"

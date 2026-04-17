@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   auth-service:
     build: ./services/auth-service
@@ -5,12 +7,13 @@ services:
     ports:
       - "5000:5000"
     environment:
-      PORT: 5000
-      MONGO_URI: mongodb://mongo:27017/auth_db
-      JWT_SECRET: supersecretkey
-      NOTIFICATION_SERVICE_URL: http://notification-service:5002/api/notifications
+      PORT: "5000"
+      MONGO_URI: "mongodb://mongo:27017/auth_db"
+      JWT_SECRET: "supersecretkey"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:5005/api/notifications"
     depends_on:
       - mongo
+      - notification-service
 
   patient-service:
     build: ./services/patient-service
@@ -18,8 +21,50 @@ services:
     ports:
       - "5001:5001"
     environment:
-      PORT: 5001
-      MONGO_URI: mongodb://mongo:27017/patient_db
+      PORT: "5001"
+      MONGO_URI: "mongodb://mongo:27017/patient_db"
+      JWT_SECRET: "supersecretkey"
+    depends_on:
+      - mongo
+
+  doctor-service:
+    build: ./services/doctor-management-service
+    container_name: doctor-service
+    ports:
+      - "5002:5002"
+    environment:
+      PORT: "5002"
+      MONGO_URI: "mongodb://mongo:27017/doctor_db"
+      JWT_SECRET: "supersecretkey"
+    depends_on:
+      - mongo
+
+  appointment-service:
+     build: ./services/appointment-service
+     container_name: appointment-service
+     ports:
+       - "5003:5003"
+     environment:
+       PORT: "5003"
+       MONGO_URI: "mongodb://mongo:27017/appointment_db"
+       JWT_SECRET: "supersecretkey"
+       DOCTOR_SERVICE_URL: "http://doctor-service:5002"
+       TELEMEDICINE_SERVICE_URL: "http://telemedicine-service:5004"
+       NOTIFICATION_SERVICE_URL: "http://notification-service:5005"
+     depends_on:
+       - mongo
+       - doctor-service
+       - telemedicine-service
+
+  telemedicine-service:
+    build: ./services/telemedicine-service
+    container_name: telemedicine-service
+    ports:
+      - "5004:5004"
+    environment:
+      PORT: "5004"
+      MONGO_URI: "mongodb://mongo:27017/telemedicine_db"
+      JWT_SECRET: "supersecretkey"
     depends_on:
       - mongo
 
@@ -27,30 +72,15 @@ services:
     build: ./services/notification-service
     container_name: notification-service
     ports:
-      - "5002:5002"
+      - "5005:5005"
     environment:
-      PORT: 5002
-      EMAIL_USER: your_email@gmail.com
-      EMAIL_PASS: your_new_app_password
-
-  telemedicine-service:
-    build: ./services/telemedicine-service
-    container_name: telemedicine-service
-    ports:
-      - "5003:5003"
-    environment:
-      PORT: 5003
-      MONGO_URI: mongodb://mongo:27017/telemedicine_db
-    depends_on:
-      - mongo
+      PORT: "5005"
+      EMAIL_USER: "asmilahamed2002@gmail.com"
+      EMAIL_PASS: "xaqqaimyymiivrbq"
+      JWT_SECRET: "supersecretkey"
 
   mongo:
     image: mongo:latest
     container_name: mongo
     ports:
       - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-volumes:
-  mongo_data:

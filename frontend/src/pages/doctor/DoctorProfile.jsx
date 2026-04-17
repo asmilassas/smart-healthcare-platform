@@ -3,17 +3,18 @@ import { useAuth } from '../../context/AuthContext'
 import { api } from '../../utils/api'
 
 const SPECIALTIES = [
-  'General Medicine','Cardiology','Dermatology','Neurology',
-  'Pediatrics','Orthopedics','Psychiatry','Oncology','Gynecology',
-  'Ophthalmology','ENT','Urology','Endocrinology','Rheumatology',
+  'General Medicine', 'Cardiology', 'Dermatology', 'Neurology',
+  'Pediatrics', 'Orthopedics', 'Psychiatry', 'Oncology', 'Gynecology',
+  'Ophthalmology', 'ENT', 'Urology', 'Endocrinology', 'Rheumatology',
 ]
 
 export default function DoctorProfile() {
   const { user } = useAuth()
+  const doctorUserId = user?.id || user?._id
 
   const [form, setForm] = useState({
-    fullName: user.name  || '',
-    email: user.email || '',
+    fullName: user?.name || '',
+    email: user?.email || '',
     phone: '',
     hospital: '',
     specialty: '',
@@ -32,34 +33,52 @@ export default function DoctorProfile() {
   const [isNew, setIsNew] = useState(false)
 
   useEffect(() => {
-    api.getDoctor(user.id)
-      .then(r => {
+    if (!doctorUserId) {
+      setLoading(false)
+      return
+    }
+
+    api.getDoctor(doctorUserId)
+      .then((r) => {
         const d = r.data
         setProfile(d)
         setForm({
-          fullName: d.fullName || user.name  || '',
-          email: d.email || user.email || '',
+          fullName: d.fullName || user?.name || '',
+          email: d.email || user?.email || '',
           phone: d.phone || '',
           hospital: d.hospital || '',
           specialty: d.specialty || '',
-          qualifications: (d.qualifications || []).join(', '),
+          qualifications: Array.isArray(d.qualifications)
+            ? d.qualifications.join(', ')
+            : '',
           experience: d.experience !== undefined ? String(d.experience) : '',
           consultationFee: d.consultationFee !== undefined ? String(d.consultationFee) : '',
           bio: d.bio || '',
           isAvailable: d.isAvailable ?? true,
         })
       })
-      .catch(() => setIsNew(true))
+      .catch(() => {
+        setIsNew(true)
+        setForm((prev) => ({
+          ...prev,
+          fullName: user?.name || '',
+          email: user?.email || '',
+        }))
+      })
       .finally(() => setLoading(false))
-  }, [user.id])
+  }, [doctorUserId, user])
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const val = e.target.type === 'checkbox' ? e.target.checked : e.target.value
-    setForm(f => ({ ...f, [e.target.name]: val }))
+    setForm((f) => ({ ...f, [e.target.name]: val }))
   }
 
   const buildPayload = () => {
-    const quals = form.qualifications.split(',').map(q => q.trim()).filter(Boolean)
+    const quals = form.qualifications
+      .split(',')
+      .map((q) => q.trim())
+      .filter(Boolean)
+
     return {
       fullName: form.fullName.trim(),
       email: form.email.trim(),
@@ -74,37 +93,58 @@ export default function DoctorProfile() {
     }
   }
 
-  // Client-side required-field guard (mirrors backend validation)
   const validate = () => {
-    const quals = form.qualifications.split(',').map(q => q.trim()).filter(Boolean)
+    const quals = form.qualifications
+      .split(',')
+      .map((q) => q.trim())
+      .filter(Boolean)
+
     if (!form.fullName.trim()) return 'Full name is required.'
     if (!form.phone.trim()) return 'Phone number is required.'
     if (!form.hospital.trim()) return 'Hospital / clinic name is required.'
     if (!form.specialty) return 'Specialty is required.'
     if (form.experience === '') return 'Years of experience is required.'
-    if (!form.consultationFee) return 'Consultation fee is required.'
+    if (form.consultationFee === '') return 'Consultation fee is required.'
     if (quals.length === 0) return 'At least one qualification is required.'
     return null
   }
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setSuccess('')
 
+    if (!doctorUserId) {
+      setError('User information is not available. Please log in again.')
+      return
+    }
+
     const validationError = validate()
-    if (validationError) return setError(validationError)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
 
     setSaving(true)
+
     try {
       if (isNew) {
-        await api.createDoctorProfile({ ...buildPayload(), userId: user.id })
+        await api.createDoctorProfile({
+          ...buildPayload(),
+          userId: doctorUserId,
+        })
+
+        const refreshed = await api.getDoctor(doctorUserId)
+        setProfile(refreshed.data)
         setIsNew(false)
+
         setSuccess('Profile created! An admin will review and verify your profile shortly.')
-        setProfile({ isVerified: false, pendingReVerification: false })
       } else {
-        const res = await api.updateDoctorProfile(user.id, buildPayload())
-        setProfile(res.data.doctor || res.data)
+        await api.updateDoctorProfile(doctorUserId, buildPayload())
+
+        const refreshed = await api.getDoctor(doctorUserId)
+        setProfile(refreshed.data)
+
         setSuccess('Profile updated. Your changes are pending admin re-verification before you appear in search results.')
       }
     } catch (err) {
@@ -124,25 +164,31 @@ export default function DoctorProfile() {
       <div className="container" style={{ maxWidth: 720 }}>
         <div className="page-header">
           <h1>Doctor Profile</h1>
-          <p>{isNew ? 'Complete your profile to start accepting patients' : 'Manage your professional information'}</p>
+          <p>
+            {isNew
+              ? 'Complete your profile to start accepting patients'
+              : 'Manage your professional information'}
+          </p>
         </div>
 
-        {/* Status banners */}
         {isNew && (
           <div className="info-banner">
             ℹ️ Please complete all required fields. An admin will verify your profile before you appear to patients.
           </div>
         )}
+
         {!isNew && isPendingReVerification && (
           <div className="warning-banner">
             ⏳ Your recent profile changes are <strong>pending admin re-verification</strong>. You will not appear in search results until approved.
           </div>
         )}
+
         {!isNew && !isPendingReVerification && !profile?.isVerified && (
           <div className="warning-banner">
             ⏳ Your profile is pending initial admin verification.
           </div>
         )}
+
         {isVerified && (
           <div className="success-banner">
             ✓ Your profile is verified and visible to patients.
@@ -151,11 +197,11 @@ export default function DoctorProfile() {
 
         <div className="card">
           <form onSubmit={handleSubmit}>
-
-            {/* Row 1 — Name + Email */}
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Full Name <span className="req">*</span></label>
+                <label className="form-label">
+                  Full Name <span className="req">*</span>
+                </label>
                 <input
                   className="input-field"
                   name="fullName"
@@ -165,6 +211,7 @@ export default function DoctorProfile() {
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label className="form-label">Email</label>
                 <input
@@ -178,10 +225,11 @@ export default function DoctorProfile() {
               </div>
             </div>
 
-            {/* Row 2 — Phone + Hospital */}
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Phone <span className="req">*</span></label>
+                <label className="form-label">
+                  Phone <span className="req">*</span>
+                </label>
                 <input
                   className="input-field"
                   name="phone"
@@ -191,8 +239,11 @@ export default function DoctorProfile() {
                   required
                 />
               </div>
+
               <div className="form-group">
-                <label className="form-label">Hospital / Clinic <span className="req">*</span></label>
+                <label className="form-label">
+                  Hospital / Clinic <span className="req">*</span>
+                </label>
                 <input
                   className="input-field"
                   name="hospital"
@@ -204,17 +255,29 @@ export default function DoctorProfile() {
               </div>
             </div>
 
-            {/* Row 3 — Specialty + Experience */}
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Specialty <span className="req">*</span></label>
-                <select className="select-field" name="specialty" value={form.specialty} onChange={handleChange} required>
+                <label className="form-label">
+                  Specialty <span className="req">*</span>
+                </label>
+                <select
+                  className="select-field"
+                  name="specialty"
+                  value={form.specialty}
+                  onChange={handleChange}
+                  required
+                >
                   <option value="">Select specialty…</option>
-                  {SPECIALTIES.map(s => <option key={s}>{s}</option>)}
+                  {SPECIALTIES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
                 </select>
               </div>
+
               <div className="form-group">
-                <label className="form-label">Years of Experience <span className="req">*</span></label>
+                <label className="form-label">
+                  Years of Experience <span className="req">*</span>
+                </label>
                 <input
                   className="input-field"
                   type="number"
@@ -229,10 +292,11 @@ export default function DoctorProfile() {
               </div>
             </div>
 
-            {/* Row 4 — Fee */}
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Consultation Fee (LKR) <span className="req">*</span></label>
+                <label className="form-label">
+                  Consultation Fee (LKR) <span className="req">*</span>
+                </label>
                 <input
                   className="input-field"
                   type="number"
@@ -247,9 +311,10 @@ export default function DoctorProfile() {
               <div />
             </div>
 
-            {/* Qualifications */}
             <div className="form-group">
-              <label className="form-label">Qualifications <span className="req">*</span></label>
+              <label className="form-label">
+                Qualifications <span className="req">*</span>
+              </label>
               <input
                 className="input-field"
                 name="qualifications"
@@ -263,7 +328,6 @@ export default function DoctorProfile() {
               </div>
             </div>
 
-            {/* Bio */}
             <div className="form-group">
               <label className="form-label">Professional Bio</label>
               <textarea
@@ -276,7 +340,6 @@ export default function DoctorProfile() {
               />
             </div>
 
-            {/* Available toggle */}
             <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <input
                 type="checkbox"
@@ -286,12 +349,15 @@ export default function DoctorProfile() {
                 onChange={handleChange}
                 style={{ width: 18, height: 18, accentColor: 'var(--accent)', cursor: 'pointer' }}
               />
-              <label htmlFor="isAvailable" style={{ cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500 }}>
+              <label
+                htmlFor="isAvailable"
+                style={{ cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500 }}
+              >
                 I am currently accepting new patients
               </label>
             </div>
 
-            {error   && <div className="error-msg">{error}</div>}
+            {error && <div className="error-msg">{error}</div>}
             {success && <div className="success-msg">{success}</div>}
 
             <div style={{ marginTop: 4, fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 12 }}>
@@ -316,21 +382,33 @@ export default function DoctorProfile() {
 
       <style>{`
         .info-banner {
-          padding: 14px 18px; border-radius: var(--radius-sm);
-          margin-bottom: 20px; font-size: 0.88rem;
-          background: var(--info-light); color: var(--info);
+          padding: 14px 18px;
+          border-radius: var(--radius-sm);
+          margin-bottom: 20px;
+          font-size: 0.88rem;
+          background: var(--info-light);
+          color: var(--info);
         }
         .warning-banner {
-          padding: 14px 18px; border-radius: var(--radius-sm);
-          margin-bottom: 20px; font-size: 0.88rem;
-          background: var(--warning-light); color: var(--warning);
+          padding: 14px 18px;
+          border-radius: var(--radius-sm);
+          margin-bottom: 20px;
+          font-size: 0.88rem;
+          background: var(--warning-light);
+          color: var(--warning);
         }
         .success-banner {
-          padding: 14px 18px; border-radius: var(--radius-sm);
-          margin-bottom: 20px; font-size: 0.88rem;
-          background: var(--success-light); color: var(--success);
+          padding: 14px 18px;
+          border-radius: var(--radius-sm);
+          margin-bottom: 20px;
+          font-size: 0.88rem;
+          background: var(--success-light);
+          color: var(--success);
         }
-        .req { color: var(--danger); margin-left: 2px; }
+        .req {
+          color: var(--danger);
+          margin-left: 2px;
+        }
       `}</style>
     </div>
   )

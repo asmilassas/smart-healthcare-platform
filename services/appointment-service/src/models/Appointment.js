@@ -27,8 +27,8 @@ const appointmentSchema = new mongoose.Schema(
       required: true
     },
     timeSlot: {
-      startTime: { type: String, required: true }, 
-      endTime: { type: String, required: true } 
+      startTime: { type: String, required: true },
+      endTime: { type: String, required: true }
     },
     type: {
       type: String,
@@ -68,6 +68,19 @@ const appointmentSchema = new mongoose.Schema(
     videoRoomId: {
       type: String,
       default: null
+    },
+    meetingLink: {
+      type: String,
+      default: null
+    },
+    onsiteDetails: {
+      type: String,
+      default: null
+    },
+    patientEmail: {
+      type: String,
+      required: false,
+      trim: null
     }
   },
   { timestamps: true }

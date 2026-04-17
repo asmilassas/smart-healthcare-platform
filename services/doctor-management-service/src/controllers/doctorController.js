@@ -4,15 +4,15 @@ const Prescription = require("../models/Prescription");
 // POST /api/doctors
 const createDoctorProfile = async (req, res) => {
   try {
+    const userId = req.user.id;
     const {
-      userId, fullName, email, phone, hospital,
+      fullName, email, phone, hospital,
       specialty, qualifications, experience, consultationFee, bio
     } = req.body;
 
-    // All required fields must be present
-    if (!userId || !fullName || !email || !phone || !hospital || !specialty || !consultationFee || experience === undefined || experience === "") {
+    if (!fullName || !email || !phone || !hospital || !specialty || !consultationFee || experience === undefined || experience === "") {
       return res.status(400).json({
-        message: "userId, fullName, email, phone, hospital, specialty, experience, and consultationFee are all required"
+        message: "fullName, email, phone, hospital, specialty, experience, and consultationFee are all required"
       });
     }
 
@@ -227,8 +227,13 @@ const issuePrescription = async (req, res) => {
 
 const getPrescriptionsByPatient = async (req, res) => {
   try {
+    if (req.user.role === "patient" && req.user.id !== req.params.patientId) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     const prescriptions = await Prescription.find({ patientId: req.params.patientId })
       .sort({ createdAt: -1 });
+
     res.status(200).json(prescriptions);
   } catch (error) {
     res.status(500).json({ message: error.message });

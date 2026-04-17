@@ -2,20 +2,23 @@ const sendEmail = require("../utils/sendEmail");
 
 const sendGenericEmail = async (req, res) => {
   try {
-    const { to, subject, message } = req.body;
+    const { to, subject, text, message } = req.body;
 
-    if (!to || !subject || !message) {
-      return res.status(400).json({ message: "to, subject, and message are required" });
+    const finalMessage = text || message;
+
+    if (!to || !subject || !finalMessage) {
+      return res.status(400).json({ message: "to, subject, and text are required" });
     }
 
     await sendEmail({
       to,
       subject,
-      html: `<p>${message}</p>`
+      html: `<p>${finalMessage}</p>`
     });
 
     res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
+    console.error("Email controller error:", error);
     res.status(500).json({ message: error.message });
   }
 };

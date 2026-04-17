@@ -11,44 +11,38 @@ const {
   updatePaymentStatus,
   attachVideoRoom,
   attachPrescription,
-  getAllAppointments
+  getAllAppointments,
+  getBookedSlotsForDoctorByDate,
+  mockPayAndConfirmAppointment
 } = require("../controllers/appointmentController");
 
 const router = express.Router();
 
-// Admin 
+// Adminrouter.patch("/:id/mock-pay", protect, authorize("patient"), mockPayAndConfirmAppointment);
 router.get("/admin/all", protect, authorize("admin"), getAllAppointments);
 
-// Patient 
-// Book a new appointment
+// Public-to-authenticated booking helper for frontend filtering
+router.get("/doctor/:doctorId/booked-slots", protect, getBookedSlotsForDoctorByDate);
+
+// Patient
 router.post("/", protect, authorize("patient"), bookAppointment);
-
-// Get logged-in patient's appointments
 router.get("/my", protect, authorize("patient"), getMyAppointments);
-
-// Patient cancels an appointment
+router.patch("/:id/mock-pay", protect, authorize("patient"), mockPayAndConfirmAppointment);
 router.patch("/:id/cancel", protect, authorize("patient"), cancelAppointment);
 
-// Doctor 
-// Get logged-in doctor's appointments
+// Doctor
 router.get("/doctor/my", protect, authorize("doctor"), getDoctorAppointments);
-
-// Doctor accepts or rejects an appointment
 router.patch("/:id/respond", protect, authorize("doctor"), respondToAppointment);
-
-// Doctor marks appointment as completed
 router.patch("/:id/complete", protect, authorize("doctor"), completeAppointment);
-
-// Doctor links a prescription to the appointment
 router.patch("/:id/prescription", protect, authorize("doctor", "admin"), attachPrescription);
 
-// Payment-service updates payment status (uses admin token)
+// Payment-service updates payment status
 router.patch("/:id/payment", protect, authorize("admin"), updatePaymentStatus);
 
-// Telemedicine-service attaches a video room (uses admin or doctor token)
+// Telemedicine-service attaches a video room
 router.patch("/:id/video-room", protect, authorize("admin", "doctor"), attachVideoRoom);
 
-// Any authenticated user can view a single appointment (controller enforces ownership)
+// Single appointment
 router.get("/:id", protect, getAppointmentById);
 
 module.exports = router;

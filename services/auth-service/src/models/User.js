@@ -4,15 +4,12 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
-      trim: true
+      required: true
     },
     email: {
       type: String,
       required: true,
-      unique: true,
-      trim: true,
-      lowercase: true
+      unique: true
     },
     password: {
       type: String,
@@ -21,20 +18,19 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ["patient", "doctor", "admin"],
-      required: true
+      default: "patient"
     },
     isVerified: {
       type: Boolean,
       default: false
     },
-    otp: {
+    approvalStatus: {
       type: String,
-      default: null
+      enum: ["pending", "approved", "rejected"],
+      default: "approved"
     },
-    otpExpires: {
-      type: Date,
-      default: null
-    }
+    otp: String,
+    otpExpires: Date
   },
   { timestamps: true }
 );

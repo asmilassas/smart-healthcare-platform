@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/notifications", notificationRoutes);
 
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 5005;
 
 app.listen(PORT, () => {
   console.log(`Notification service running on port ${PORT}`);

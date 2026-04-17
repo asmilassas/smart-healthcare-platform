@@ -4,7 +4,11 @@ const {
   verifyOTP,
   loginUser,
   getProfile,
-  changeUserRole
+  changeUserRole,
+  approveDoctor,
+  rejectDoctor,
+  getPendingDoctors,
+  getAllUsers
 } = require("../controllers/authController");
 const { protect, authorize } = require("../middleware/authMiddleware");
 
@@ -24,6 +28,11 @@ router.get("/doctor", protect, authorize("doctor"), (req, res) => {
   res.json({ message: "Welcome Doctor" });
 });
 
+router.get("/users", protect, authorize("admin"), getAllUsers);
 router.patch("/users/:id/role", protect, authorize("admin"), changeUserRole);
+
+router.get("/doctors/pending", protect, authorize("admin"), getPendingDoctors);
+router.patch("/doctors/:id/approve", protect, authorize("admin"), approveDoctor);
+router.patch("/doctors/:id/reject", protect, authorize("admin"), rejectDoctor);
 
 module.exports = router;

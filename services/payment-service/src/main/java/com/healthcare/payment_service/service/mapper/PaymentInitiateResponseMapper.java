@@ -97,6 +97,11 @@ public class PaymentInitiateResponseMapper {
             paymentInitiateResponseDTO.setContactNumber(patient.getPhone());
             paymentInitiateResponseDTO.setEmail(patient.getEmail());
 
+//            paymentInitiateResponseDTO.setFirstname("John");
+//            paymentInitiateResponseDTO.setLastname("Doe");
+//            paymentInitiateResponseDTO.setContactNumber("0771234567");
+//            paymentInitiateResponseDTO.setEmail("john@doe.com");
+
             paymentInitiateResponseDTO.setNotifyUrl(payHereUtil.getNotifyUrl());
             paymentInitiateResponseDTO.setReturnUrl(returnUrl);
             paymentInitiateResponseDTO.setCancelUrl(cancelUrl);

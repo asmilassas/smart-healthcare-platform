@@ -26,6 +26,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '^/api/ai(/.*)?$': {
+        target: 'http://127.0.0.1:8084',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })

@@ -62,6 +62,10 @@ export default function PatientDashboard() {
             <span className="qa-icon">👤</span>
             <span className="qa-label">My Profile</span>
           </button>
+          <button className="quick-action-btn" onClick={() => navigate('/patient/symptom-checker')}>
+            <span className="qa-icon">🩺</span>
+            <span className="qa-label">Symptom Checker</span>
+          </button>
         </div>
 
         {/* Stats */}

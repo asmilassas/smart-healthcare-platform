@@ -251,6 +251,24 @@
   margin: 0;
 }
 
+/* Urgency badge */
+.sc-urgency-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
+.sc-urgency-low    { background: #d1fae5; color: #065f46; }
+.sc-urgency-medium { background: #fef3c7; color: #92400e; }
+.sc-urgency-high   { background: #fee2e2; color: #991b1b; }
+
+/* Disclaimer card subtle tint */
+.sc-disclaimer-card { background: #fffbeb; }
+.sc-disclaimer-text { color: #78716c; font-style: italic; margin: 0; }
+
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .sc-input-footer { flex-direction: column; align-items: flex-start; }

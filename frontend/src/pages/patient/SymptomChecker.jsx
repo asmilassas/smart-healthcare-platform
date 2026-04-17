@@ -4,51 +4,16 @@ import { api } from '../../utils/api'
 import '../../styles/Dashboard.css'
 import '../../styles/SymptomChecker.css'
 
-// Parses plain text to AI
-function parseResponse(text) {
-  const sections = []
-  let current = null
-
-  text.split('\n').forEach(raw => {
-    const line = raw.trim()
-    if (!line) return
-
-    if (/^[A-Z].{0,60}:$/.test(line)) {
-      if (current) sections.push(current)
-      current = { heading: line.replace(/:$/, ''), items: [] }
-    } else if (current) {
-      current.items.push(line.replace(/^[-•*]\s*/, ''))
-    } else {
-      sections.push({ heading: null, items: [line] })
-    }
-  })
-
-  if (current) sections.push(current)
-  return sections
-}
-
-const SECTION_ICONS = {
-  'Possible Conditions': '🔬',
-  'Recommended Actions': '📋',
-  'When to Seek Immediate Care': '🚨',
-  'Disclaimer': '⚠️',
-  'Summary': '📝',
-  'Symptoms Analyzed': '🩺',
-  'Next Steps': '➡️',
-}
-
-function getIcon(heading) {
-  if (!heading) return '💬'
-  const match = Object.keys(SECTION_ICONS).find(k =>
-    heading.toLowerCase().includes(k.toLowerCase())
-  )
-  return match ? SECTION_ICONS[match] : '📌'
+const URGENCY_COLORS = {
+  Low:    { badge: 'sc-urgency-low',    icon: '🟢' },
+  Medium: { badge: 'sc-urgency-medium', icon: '🟡' },
+  High:   { badge: 'sc-urgency-high',   icon: '🔴' },
 }
 
 export default function SymptomChecker() {
   const navigate = useNavigate()
   const [symptoms, setSymptoms] = useState('')
-  const [result, setResult]     = useState(null)   // parsed sections[]
+  const [result, setResult]     = useState(null)   // raw JSON from API
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
 
@@ -62,12 +27,7 @@ export default function SymptomChecker() {
 
     try {
       const res = await api.checkSymptoms({ symptoms: symptoms.trim() })
-      const text =
-        typeof res.data === 'string'
-          ? res.data
-          : res.data?.result ?? res.data?.response ?? JSON.stringify(res.data)
-
-      setResult(parseResponse(text))
+      setResult(res.data)
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -85,10 +45,13 @@ export default function SymptomChecker() {
     setError('')
   }
 
-  // Ctrl/Cmd + Enter to submit
   function handleKeyDown(e) {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSubmit()
   }
+
+  const urgencyStyle = result
+    ? URGENCY_COLORS[result.urgencyLevel] ?? { badge: 'sc-urgency-medium', icon: '🟡' }
+    : null
 
   return (
     <div className="page-wrapper">
@@ -183,23 +146,54 @@ export default function SymptomChecker() {
               <p className="sc-echo-text">"{symptoms.trim()}"</p>
             </div>
 
-            {/* Parsed sections */}
             <div className="sc-sections">
-              {result.map((section, i) => (
-                <div key={i} className="card sc-section-card">
-                  {section.heading && (
-                    <div className="sc-section-heading">
-                      <span className="sc-section-icon">{getIcon(section.heading)}</span>
-                      <h3>{section.heading}</h3>
-                    </div>
-                  )}
-                  <ul className="sc-section-items">
-                    {section.items.map((item, j) => (
-                      <li key={j} className="sc-section-item">{item}</li>
-                    ))}
-                  </ul>
+
+              {/* Urgency Level */}
+              <div className="card sc-section-card">
+                <div className="sc-section-heading">
+                  <span className="sc-section-icon">⚡</span>
+                  <h3>Urgency Level</h3>
                 </div>
-              ))}
+                <div className={`sc-urgency-badge ${urgencyStyle.badge}`}>
+                  {urgencyStyle.icon} {result.urgencyLevel}
+                </div>
+              </div>
+
+              {/* Possible Conditions */}
+              <div className="card sc-section-card">
+                <div className="sc-section-heading">
+                  <span className="sc-section-icon">🔬</span>
+                  <h3>Possible Conditions</h3>
+                </div>
+                <ul className="sc-section-items">
+                  {result.possibleConditions.map((condition, i) => (
+                    <li key={i} className="sc-section-item">{condition}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Recommended Specialties */}
+              <div className="card sc-section-card">
+                <div className="sc-section-heading">
+                  <span className="sc-section-icon">👨‍⚕️</span>
+                  <h3>Recommended Specialties</h3>
+                </div>
+                <ul className="sc-section-items">
+                  {result.recommendedSpecialties.map((specialty, i) => (
+                    <li key={i} className="sc-section-item">{specialty}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Disclaimer */}
+              <div className="card sc-section-card sc-disclaimer-card">
+                <div className="sc-section-heading">
+                  <span className="sc-section-icon">⚠️</span>
+                  <h3>Disclaimer</h3>
+                </div>
+                <p className="sc-disclaimer-text">{result.disclaimer}</p>
+              </div>
+
             </div>
 
             {/* CTA */}

@@ -55,7 +55,4 @@ export const api = {
   attachPrescription: (id, data) => client.patch(`/api/appointments/${id}/prescription`, data),
   attachVideoRoom: (id, data) => client.patch(`/api/appointments/${id}/video-room`, data),
   updatePaymentStatus: (id, data) => client.patch(`/api/appointments/${id}/payment`, data),
-
-  // AI Service
-  checkSymptoms: (data) => client.post('/api/ai/symptom-check', data),
 }

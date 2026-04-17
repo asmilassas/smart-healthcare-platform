@@ -4,8 +4,7 @@ import { api } from '../../utils/api'
 import '../../styles/Dashboard.css'
 import '../../styles/SymptomChecker.css'
 
-// Parses the AI's plain-text response into labelled sections.
-// Sections are detected by lines ending with a colon (e.g. "Possible Conditions:").
+// Parses plain text to AI
 function parseResponse(text) {
   const sections = []
   let current = null
@@ -14,15 +13,12 @@ function parseResponse(text) {
     const line = raw.trim()
     if (!line) return
 
-    // Line is a section heading if it ends with ':'
     if (/^[A-Z].{0,60}:$/.test(line)) {
       if (current) sections.push(current)
       current = { heading: line.replace(/:$/, ''), items: [] }
     } else if (current) {
-      // Strip leading bullet characters
       current.items.push(line.replace(/^[-•*]\s*/, ''))
     } else {
-      // Text before the first heading goes into a generic intro section
       sections.push({ heading: null, items: [line] })
     }
   })
@@ -31,7 +27,6 @@ function parseResponse(text) {
   return sections
 }
 
-// Map section headings to an icon for visual interest
 const SECTION_ICONS = {
   'Possible Conditions': '🔬',
   'Recommended Actions': '📋',
@@ -67,7 +62,6 @@ export default function SymptomChecker() {
 
     try {
       const res = await api.checkSymptoms({ symptoms: symptoms.trim() })
-      // The service may return { result: "..." } or { response: "..." } or a plain string
       const text =
         typeof res.data === 'string'
           ? res.data
@@ -104,7 +98,7 @@ export default function SymptomChecker() {
         <div className="page-header">
           <button
             className="btn btn-outline btn-sm sc-back-btn"
-            onClick={() => navigate('/patient/dashboard')}
+            onClick={() => navigate('/patient')}
           >
             ← Back
           </button>

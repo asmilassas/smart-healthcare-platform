@@ -17,8 +17,8 @@ public class PaymentInitiateResponseDTO {
 
     // PayHere URLs
     private String notifyUrl;
-//    private String returnUrl;
-//    private String cancelUrl;
+    private String returnUrl;
+    private String cancelUrl;
 
 
     // Getters & Setters
@@ -90,4 +90,8 @@ public class PaymentInitiateResponseDTO {
     public void setNotifyUrl(String notifyUrl) {
         this.notifyUrl = notifyUrl;
     }
+    public String getReturnUrl() { return returnUrl; }
+    public void setReturnUrl(String returnUrl) { this.returnUrl = returnUrl; }
+    public String getCancelUrl() { return cancelUrl; }
+    public void setCancelUrl(String cancelUrl) { this.cancelUrl = cancelUrl; }
 }

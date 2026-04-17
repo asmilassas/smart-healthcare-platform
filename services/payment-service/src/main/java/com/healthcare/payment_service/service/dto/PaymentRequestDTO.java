@@ -15,6 +15,9 @@ public class PaymentRequestDTO {
     @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than zero")
     private BigDecimal amount;
 
+    @NotNull(message = "PatientId is required")
+    private String patientId;
+
     // Getters & Setters
     public String getAppointmentId() {
         return appointmentId;
@@ -28,5 +31,13 @@ public class PaymentRequestDTO {
     }
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+
+    public String getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
     }
 }

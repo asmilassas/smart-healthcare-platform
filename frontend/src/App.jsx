@@ -29,6 +29,12 @@ import VerifyDoctors from './pages/admin/VerifyDoctors'
 import AllAppointments from './pages/admin/AllAppointments'
 import UserManagement from './pages/admin/UserManagement'
 
+// AI Symptom pages
+import SymptomChecker from './pages/patient/SymptomChecker'
+
+// Payment Gateway
+import PaymentGateway from './pages/patient/Paymentgateway'
+
 export default function App() {
   return (
     <AuthProvider>
@@ -46,6 +52,8 @@ export default function App() {
         <Route path="/patient/appointments" element={<ProtectedRoute roles={['patient']}><MyAppointments /></ProtectedRoute>} />
         <Route path="/patient/prescriptions" element={<ProtectedRoute roles={['patient']}><MyPrescriptions /></ProtectedRoute>} />
         <Route path="/patient/profile" element={<ProtectedRoute roles={['patient']}><PatientProfile /></ProtectedRoute>} />
+        <Route path="/patient/symptom-checker" element={<SymptomChecker />} />
+        <Route path="/patient/payment" element={<PaymentGateway />} />
 
         {/* Doctor */}
         <Route path="/doctor" element={<ProtectedRoute roles={['doctor']}><DoctorDashboard /></ProtectedRoute>} />

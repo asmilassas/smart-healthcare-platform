@@ -43,7 +43,7 @@ router.patch("/:id/complete", protect, authorize("doctor"), completeAppointment)
 router.patch("/:id/prescription", protect, authorize("doctor", "admin"), attachPrescription);
 
 // Payment-service updates payment status (uses admin token)
-router.patch("/:id/payment", protect, authorize("admin"), updatePaymentStatus);
+router.patch("/:id/payment", updatePaymentStatus);
 
 // Telemedicine-service attaches a video room (uses admin or doctor token)
 router.patch("/:id/video-room", protect, authorize("admin", "doctor"), attachVideoRoom);

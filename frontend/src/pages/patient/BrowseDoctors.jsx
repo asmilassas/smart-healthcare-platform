@@ -93,7 +93,6 @@ export default function BrowseDoctors() {
                 </div>
 
                 <div className="doctor-card-meta">
-                  <span>⭐ {doc.rating ? doc.rating.toFixed(1) : 'New'}</span>
                   <span>🎓 {doc.experience || 0} yrs exp</span>
                   {doc.isAvailable
                     ? <span style={{ color: 'var(--success)' }}>● Available</span>

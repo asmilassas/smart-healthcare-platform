@@ -65,8 +65,7 @@ const updateDoctorProfile = async (req, res) => {
       return res.status(403).json({ message: "You can only update your own profile" });
     }
 
-    // Strip fields that must not be set directly by the doctor
-    const disallowed = ["userId", "isVerified", "rating", "totalRatings", "pendingReVerification"];
+    const disallowed = ["userId", "isVerified", "pendingReVerification"];
     disallowed.forEach(f => delete req.body[f]);
 
     // Validate required fields are still present after stripping

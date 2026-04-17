@@ -8,19 +8,19 @@ function extractDoctors(data) {
 }
 
 export default function VerifyDoctors() {
-  const [pendingDocs, setPendingDocs] = useState([])  // new and re-verification needed
+  const [pendingDocs, setPendingDocs] = useState([])  
   const [verifiedDocs, setVerifiedDocs] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('pending')
   const [actionId, setActionId]  = useState(null)
   const [error, setError] = useState('')
-  const [expanded, setExpanded]  = useState({})      // track which cards are expanded
+  const [expanded, setExpanded]  = useState({})      
 
   const fetchDoctors = () => {
     setLoading(true)
     Promise.all([
-      api.getUnverifiedDoctors(),   // new and pendingReVerification doctors
-      api.getAllDoctorsAdmin(),      // all doctors
+      api.getUnverifiedDoctors(),   
+      api.getAllDoctorsAdmin(),      
     ])
       .then(([unv, all]) => {
         setPendingDocs(Array.isArray(unv.data) ? unv.data : [])
@@ -259,7 +259,6 @@ export default function VerifyDoctors() {
   )
 }
 
-// Small helper components for the detail grid
 function Detail({ label, value }) {
   return (
     <div>

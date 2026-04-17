@@ -90,14 +90,6 @@ const doctorSchema = new mongoose.Schema(
       default: true
     },
     availability: [availabilitySchema],
-    rating: {
-      type: Number,
-      default: 0
-    },
-    totalRatings: {
-      type: Number,
-      default: 0
-    }
   },
   { timestamps: true }
 );

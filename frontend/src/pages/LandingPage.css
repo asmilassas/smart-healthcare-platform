@@ -1,6 +1,6 @@
 .landing { overflow-x: hidden; }
 
-/* ─── Hero ──────────────────────────────────────────────────── */
+/* Hero */
 .hero {
   background: var(--surface);
   border-bottom: 1.5px solid var(--border);
@@ -88,7 +88,7 @@
 
 .hcard-2, .hcard-3 { flex-direction: column; align-items: flex-start; }
 
-/* ─── Specialties ───────────────────────────────────────────── */
+/* Specialties */
 .specialties-section { padding: 48px 24px; }
 
 .section-eyebrow {
@@ -123,7 +123,7 @@
   background: var(--accent-light);
 }
 
-/* ─── Features ──────────────────────────────────────────────── */
+/* Features */
 .features-section {
   padding: 60px 24px;
 }
@@ -166,7 +166,7 @@
   line-height: 1.6;
 }
 
-/* ─── CTA ───────────────────────────────────────────────────── */
+/* CTA */
 .cta-section { padding: 60px 24px; }
 
 .cta-box {
@@ -188,7 +188,7 @@
   margin-bottom: 28px;
 }
 
-/* ─── Footer ────────────────────────────────────────────────── */
+/* Footer */
 .landing-footer {
   border-top: 1.5px solid var(--border);
   padding: 24px;

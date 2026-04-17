@@ -1,5 +1,6 @@
 package com.healthcare.payment_service;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -7,6 +8,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class PaymentServiceApplication {
 
 	public static void main(String[] args) {
+
+		// Load .env before Spring starts
+		Dotenv dotenv = Dotenv.configure()
+				.directory("./") // root folder where your .env is
+				.ignoreIfMissing()
+				.load();
+
+		dotenv.entries().forEach(entry ->
+				System.setProperty(entry.getKey(), entry.getValue())
+		);
+
 		SpringApplication.run(PaymentServiceApplication.class, args);
 	}
 

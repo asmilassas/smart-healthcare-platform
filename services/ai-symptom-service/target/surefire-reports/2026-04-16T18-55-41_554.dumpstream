@@ -1,0 +1,5 @@
+# Created at 2026-04-16T18:55:41.771
+Boot Manifest-JAR contains absolute paths in classpath 'D:\SLIIT\SE\PR\SE3020-DS\Assignment\project\smart-healthcare-platform\services\ai-symptom-service\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

@@ -30,8 +30,8 @@ services:
       - "5002:5002"
     environment:
       PORT: 5002
-      EMAIL_USER: your_email@gmail.com
-      EMAIL_PASS: your_new_app_password
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
 
   doctor-service:
     build: ./services/doctor-management-service

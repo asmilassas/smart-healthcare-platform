@@ -41,6 +41,20 @@ export default function MyAppointments() {
     }
   }
 
+  const handlePay = (a) => {
+    navigate('/patient/payment', {
+      state: {
+        appointmentId:   a._id,
+        amount:          a.consultationFee,
+        doctorName:      a.doctorName,
+        specialty:       a.specialty,
+        appointmentDate: a.appointmentDate,
+        timeSlot:        a.timeSlot,
+        type:            a.type,
+      },
+    })
+  }
+
   const filtered = filter === 'all' ? appointments : appointments.filter(a => a.status === filter)
 
   return (
@@ -155,15 +169,30 @@ export default function MyAppointments() {
                   </div>
                 )}
 
-                {['pending', 'confirmed'].includes(a.status) && (
-                  <div style={{ marginTop: 16 }}>
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleCancel(a._id)}
-                      disabled={cancellingId === a._id}
-                    >
-                      {cancellingId === a._id ? 'Cancelling…' : 'Cancel Appointment'}
-                    </button>
+                {((['pending', 'confirmed'].includes(a.status)) || (a.status === 'confirmed' && a.paymentStatus === 'unpaid')) && (
+                  <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+
+                    {/* Pay button — only when confirmed AND payment is unpaid */}
+                    {a.status === 'confirmed' && a.paymentStatus === 'unpaid' && (
+                      <button
+                        className="btn btn-accent btn-sm"
+                        onClick={() => handlePay(a)}
+                      >
+                        💳 Pay Now
+                      </button>
+                    )}
+
+                    {/* Cancel button — only when pending or confirmed */}
+                    {['pending', 'confirmed'].includes(a.status) && (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleCancel(a._id)}
+                        disabled={cancellingId === a._id}
+                      >
+                        {cancellingId === a._id ? 'Cancelling…' : 'Cancel Appointment'}
+                      </button>
+                    )}
+
                   </div>
                 )}
               </div>

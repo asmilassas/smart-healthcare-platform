@@ -20,7 +20,7 @@ export default function IssuePrescription() {
   const [form, setForm] = useState({
     diagnosis: '',
     medications: [emptyMed()],
-    notes: '',           // matches Prescription model field name
+    notes: '',           
     followUpDate: '',
   })
 
@@ -44,8 +44,6 @@ export default function IssuePrescription() {
     setError('')
     setSubmitting(true)
     try {
-      // Prescription model: appointmentId, patientId, diagnosis, medications, notes, followUpDate
-      // doctorId is set from req.user.id on the backend
       const rxRes = await api.issuePrescription({
         appointmentId,
         patientId: appointment.patientId,

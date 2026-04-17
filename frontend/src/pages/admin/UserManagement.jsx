@@ -84,7 +84,6 @@ export default function UserManagement() {
                     <th>Qualifications</th>
                     <th>Exp.</th>
                     <th>Fee (LKR)</th>
-                    <th>Rating</th>
                     <th>Status</th>
                     <th>Available</th>
                   </tr>
@@ -127,7 +126,6 @@ export default function UserManagement() {
                       <td style={{ fontSize: '0.85rem' }}>{d.experience} yrs</td>
                       <td style={{ fontWeight: 600, fontSize: '0.85rem' }}>{d.consultationFee?.toLocaleString()}</td>
                       <td style={{ fontSize: '0.85rem' }}>
-                        {d.rating > 0 ? `⭐ ${d.rating.toFixed(1)}` : '—'}
                       </td>
                       <td>
                         {d.pendingReVerification

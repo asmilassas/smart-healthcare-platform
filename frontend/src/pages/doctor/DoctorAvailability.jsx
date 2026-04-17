@@ -20,7 +20,7 @@ export default function DoctorAvailability() {
     api.getDoctorAvailability(user.id)
       .then(r => {
         if (r.data?.availability?.length > 0) {
-          // Merge returned data with full week
+          
           const merged = DAYS.map(day => {
             const found = r.data.availability.find(a => a.dayOfWeek === day)
             return found || { dayOfWeek: day, slots: [] }

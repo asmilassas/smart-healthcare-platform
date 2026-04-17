@@ -44,6 +44,30 @@ services:
     depends_on:
       - mongo
 
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8083:8083"
+    environment:
+      MONGO_URI: ${MONGO_URI_ATLAS}
+      JWT_SECRET: ${JWT_SECRET}
+      PAYHERE_MERCHANT_ID: ${PAYHERE_MERCHANT_ID}
+      PAYHERE_MERCHANT_SECRET: ${PAYHERE_MERCHANT_SECRET}
+      NOTIFY_URL: ${NOTIFY_URL}
+      APPOINTMENT_SERVICE_URL: http://appointments-service:5003
+      PATIENT_SERVICE_URL: http://patient-service:5001
+
+  ai-symptom-checker:
+    build: ./ai-symptom-checker
+    container_name: ai-symptom-checker
+    ports:
+      - "8084:8084"
+    environment:
+      MONGO_URI: ${MONGO_URI_ATLAS}
+      JWT_SECRET: ${JWT_SECRET}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+
   mongo:
     image: mongo:latest
     container_name: mongo

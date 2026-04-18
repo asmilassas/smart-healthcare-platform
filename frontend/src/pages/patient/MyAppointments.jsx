@@ -19,6 +19,7 @@ export default function MyAppointments() {
   const [filter, setFilter] = useState('all')
   const [error, setError] = useState('')
   const [cancellingId, setCancellingId] = useState(null)
+  const [expandedImage, setExpandedImage] = useState(null)
 
   const fetch = () => {
     setLoading(true)
@@ -143,6 +144,12 @@ export default function MyAppointments() {
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fee</div>
                     <div style={{ fontSize: '0.9rem', marginTop: 4, fontWeight: 600 }}>LKR {a.consultationFee?.toLocaleString()}</div>
                   </div>
+                  {a.patientPhone && (
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone</div>
+                      <div style={{ fontSize: '0.9rem', marginTop: 4 }}>📞 {a.patientPhone}</div>
+                    </div>
+                  )}
                   {a.reasonForVisit && (
                     <div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Reason</div>
@@ -150,6 +157,29 @@ export default function MyAppointments() {
                     </div>
                   )}
                 </div>
+
+                {a.reportImages?.length > 0 && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                      Reports / Images
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      {a.reportImages.map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt={`report-${idx}`}
+                          onClick={() => setExpandedImage(img)}
+                          style={{
+                            width: 72, height: 72, objectFit: 'cover',
+                            borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)',
+                            cursor: 'pointer',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {a.status === 'confirmed' && a.type === 'telemedicine' && a.videoRoomId && (
                   <div style={{ marginTop: 16 }}>
@@ -175,18 +205,11 @@ export default function MyAppointments() {
 
                 {((['pending', 'confirmed'].includes(a.status)) || (a.status === 'confirmed' && a.paymentStatus === 'unpaid')) && (
                   <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-
-                    {/* Pay button — only when confirmed AND payment is unpaid */}
                     {a.status === 'confirmed' && a.paymentStatus === 'unpaid' && (
-                      <button
-                        className="btn btn-accent btn-sm"
-                        onClick={() => handlePay(a)}
-                      >
+                      <button className="btn btn-accent btn-sm" onClick={() => handlePay(a)}>
                         💳 Pay Now
                       </button>
                     )}
-
-                    {/* Cancel button — only when pending or confirmed */}
                     {['pending', 'confirmed'].includes(a.status) && (
                       <button
                         className="btn btn-danger btn-sm"
@@ -196,11 +219,27 @@ export default function MyAppointments() {
                         {cancellingId === a._id ? 'Cancelling…' : 'Cancel Appointment'}
                       </button>
                     )}
-
                   </div>
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {expandedImage && (
+          <div
+            onClick={() => setExpandedImage(null)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 1000, cursor: 'pointer',
+            }}
+          >
+            <img
+              src={expandedImage}
+              alt="report"
+              style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 8, objectFit: 'contain' }}
+            />
           </div>
         )}
       </div>

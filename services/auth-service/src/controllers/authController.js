@@ -13,66 +13,13 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// const registerUser = async (req, res) => {
-//   try {
-//     const { name, email, password } = req.body;
-//     const role = "patient";
-//
-//     if (!name || !email || !password) {
-//   return res.status(400).json({ message: "Name, email, and password are required" });
-//   }
-//
-//     const existingUser = await User.findOne({ email });
-//
-//     if (existingUser) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-//
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     const otp = generateOTP();
-//
-//     const user = await User.create({
-//       name,
-//       email,
-//       password: hashedPassword,
-//       role,
-//       isVerified: false,
-//       otp,
-//       otpExpires: new Date(Date.now() + 10 * 60 * 1000)
-//     });
-//
-//     await axios.post(`${process.env.NOTIFICATION_SERVICE_URL}/send-email`, {
-//       to: email,
-//       subject: "Verify Your Account",
-//       message: `Hello ${name}, your OTP for account verification is ${otp}. It will expire in 10 minutes.`
-//     });
-//
-//     res.status(201).json({
-//       message: "User registered successfully. OTP sent to email.",
-//       user: {
-//         id: user._id,
-//         name: user.name,
-//         email: user.email,
-//         role: user.role,
-//         isVerified: user.isVerified
-//       }
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
-
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    // const role = "patient";
-
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: "Name, email, password, and role are required" });
-    }
-
-    if (role !== "patient" && role !== "doctor") {
-      return res.status(400).json({ message: "Role must be patient or doctor" });
+  
+    const allowedRoles = ["patient", "doctor"];
+    if (!role || !allowedRoles.includes(role)) {
+      return res.status(400).json({ message: "Role must be either 'patient' or 'doctor'" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -82,25 +29,47 @@ const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const otp = generateOTP();
 
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
       role,
-      isVerified: true  // skip verification
+      isVerified: false,
+      otp,
+      otpExpires: new Date(Date.now() + 10 * 60 * 1000)
+    });
+
+    if (role === 'patient') {
+      const PATIENT_SERVICE_URL = process.env.PATIENT_SERVICE_URL || 'http://patient-service:5001';
+      axios.post(`${PATIENT_SERVICE_URL}/api/patients`, {
+        userId: user._id.toString(),
+        fullName: name,
+        email: email,
+        phone: '',
+        dateOfBirth: null,
+        gender: '',
+        address: '',
+        bloodGroup: ''
+    }).catch(err => console.error('Failed to create patient profile:', err.message));
+  }
+
+    await axios.post(`${process.env.NOTIFICATION_SERVICE_URL}/send-email`, {
+      to: email,
+      subject: "Verify Your Account",
+      message: `Hello ${name}, your OTP for account verification is ${otp}. It will expire in 10 minutes.`
     });
 
     res.status(201).json({
-      message: "User registered successfully.",
+      message: "User registered successfully. OTP sent to email.",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         isVerified: user.isVerified
-      },
-      token: generateToken(user._id, user.role)
+      }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -10,6 +10,18 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    patientEmail: {
+      type: String,
+      default: null
+    },
+    patientPhone: {
+      type: String,
+      default: null
+    },
+    reportImages: {
+      type: [String],
+      default: []
+    },
     doctorId: {
       type: String,
       required: true

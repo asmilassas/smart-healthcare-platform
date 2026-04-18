@@ -8,9 +8,8 @@ services:
       PORT: 5000
       MONGO_URI: ${MONGO_URI_ATLAS}
       JWT_SECRET: ${JWT_SECRET}
+      PATIENT_SERVICE_URL: http://patient-service:5001
       NOTIFICATION_SERVICE_URL: http://notification-service:5002/api/notifications
-    depends_on:
-      - mongo
 
   patient-service:
     build: ./services/patient-service
@@ -20,8 +19,6 @@ services:
     environment:
       PORT: 5001
       MONGO_URI: ${MONGO_URI_ATLAS}
-    depends_on:
-      - mongo
 
   notification-service:
     build: ./services/notification-service
@@ -32,15 +29,6 @@ services:
       PORT: 5002
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASS: ${EMAIL_PASS}
-
-  telemedicine-service:
-    build: ./services/telemedicine-service
-    container_name: telemedicine-service
-    ports:
-      - "5003:5003"
-    environment:
-      PORT: 5003
-      MONGO_URI: ${MONGO_URI_ATLAS}
 
   doctor-service:
     build: ./services/doctor-management-service
@@ -63,6 +51,17 @@ services:
       MONGO_URI: ${MONGO_URI_ATLAS}
       JWT_SECRET: ${JWT_SECRET}
       DOCTOR_SERVICE_URL: http://doctor-service:5004
+      PATIENT_SERVICE_URL: http://patient-service:5001
+      NOTIFICATION_SERVICE_URL: http://notification-service:5002/api/notifications
+
+  telemedicine-service:
+    build: ./services/telemedicine-service
+    container_name: telemedicine-service
+    ports:
+      - "5003:5003"
+    environment:
+      PORT: 5003
+      MONGO_URI: ${MONGO_URI_ATLAS}
 
   payment-service:
     build: ./services/payment-service
@@ -91,14 +90,3 @@ services:
       MONGO_URI: ${MONGO_URI_ATLAS}
       JWT_SECRET: ${JWT_SECRET}
       GROQ_API_KEY: ${GROQ_API_KEY}
-
-  mongo:
-    image: mongo:latest
-    container_name: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-volumes:
-  mongo_data:

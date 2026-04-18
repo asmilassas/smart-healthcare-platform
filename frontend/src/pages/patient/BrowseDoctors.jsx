@@ -94,6 +94,7 @@ export default function BrowseDoctors() {
 
                 <div className="doctor-card-meta">
                   <span>🎓 {doc.experience || 0} yrs exp</span>
+                  {doc.hospital && <span>🏥 {doc.hospital}</span>}
                   {doc.isAvailable
                     ? <span style={{ color: 'var(--success)' }}>● Available</span>
                     : <span style={{ color: 'var(--danger)' }}>● Unavailable</span>

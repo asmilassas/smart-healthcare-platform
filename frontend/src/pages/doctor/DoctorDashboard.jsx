@@ -74,11 +74,7 @@ export default function DoctorDashboard() {
           </button>
           <button className="quick-action-btn" onClick={() => navigate('/doctor/profile')}>
             <span className="qa-icon">👤</span>
-            <span className="qa-label">My Profile</span>
-          </button>
-          <button className="quick-action-btn" onClick={() => navigate('/doctor/appointments')}>
-            <span className="qa-icon">💊</span>
-            <span className="qa-label">Issue Rx</span>
+            <span className="qa-label">My Profile </span>
           </button>
         </div>
 

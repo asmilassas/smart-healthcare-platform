@@ -53,7 +53,6 @@ export default function MyPrescriptions() {
                       Issued for appointment on {new Date(p.createdAt).toLocaleDateString()}
                     </div>
                   </div>
-                  <span className="badge badge-confirmed">Digital Rx</span>
                 </div>
 
                 <div className="divider" style={{ margin: '0 0 16px' }} />

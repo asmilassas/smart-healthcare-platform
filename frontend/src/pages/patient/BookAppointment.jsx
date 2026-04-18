@@ -5,11 +5,9 @@ import { api } from '../../utils/api'
 
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
 
-// JS Date.getDay(): 0=Sun, 1=Mon ... 6=Sat
-// Our DAYS array: 0=Mon, 1=Tue ... 6=Sun
 function getDayName(dateStr) {
   const d = new Date(dateStr)
-  const jsDay = d.getDay() // 0=Sun
+  const jsDay = d.getDay()
   const idx = jsDay === 0 ? 6 : jsDay - 1
   return DAYS[idx]
 }
@@ -32,6 +30,8 @@ export default function BookAppointment() {
     selectedSlot: null,
     type: 'telemedicine',
     reasonForVisit: '',
+    patientPhone: '',
+    reportImages: [],
   })
 
   useEffect(() => {
@@ -53,12 +53,33 @@ export default function BookAppointment() {
     setForm(f => ({ ...f, appointmentDate: date, selectedDay: dayName, selectedSlot: null }))
   }
 
+  const handleImageUpload = e => {
+    const files = Array.from(e.target.files)
+    if (files.length + form.reportImages.length > 5) {
+      setError('You can upload a maximum of 5 images.')
+      return
+    }
+    setError('')
+    files.forEach(file => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setForm(f => ({ ...f, reportImages: [...f.reportImages, reader.result] }))
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeImage = idx => {
+    setForm(f => ({ ...f, reportImages: f.reportImages.filter((_, i) => i !== idx) }))
+  }
+
   const slotsForDay = (availability.find(a => a.dayOfWeek === form.selectedDay)?.slots || [])
     .filter(s => !s.isBooked)
 
   const handleSubmit = async e => {
     e.preventDefault()
     if (!form.selectedSlot) return setError('Please select a time slot.')
+    if (!form.patientPhone.trim()) return setError('Please enter your phone number.')
     setError('')
     setSubmitting(true)
     try {
@@ -70,16 +91,17 @@ export default function BookAppointment() {
       await api.bookAppointment({
         doctorId,
         patientName: user.name,
+        patientPhone: form.patientPhone.trim(),
         appointmentDate: form.appointmentDate,
         timeSlot: cleanSlot,
         type: form.type,
         reasonForVisit: form.reasonForVisit,
+        reportImages: form.reportImages,
       })
 
       setSuccess('Appointment booked successfully! Awaiting doctor confirmation.')
       setTimeout(() => navigate('/patient/appointments'), 2500)
     } catch (err) {
-      // Show the actual backend error message so the patient knows what went wrong
       const msg = err.response?.data?.message
       setError(msg || 'Booking failed. Please try again.')
     } finally {
@@ -105,7 +127,6 @@ export default function BookAppointment() {
           ← Back
         </button>
 
-        {/* Doctor summary card */}
         <div className="card" style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
             <div style={{
@@ -130,7 +151,6 @@ export default function BookAppointment() {
           </div>
         </div>
 
-        {/* Booking form */}
         <div className="card">
           <h2 className="section-title">Book Appointment</h2>
 
@@ -167,7 +187,6 @@ export default function BookAppointment() {
               </div>
             </div>
 
-            {/* Time slot picker */}
             {form.appointmentDate && (
               <div className="form-group">
                 <label className="form-label">Available Time Slots — {form.selectedDay}</label>
@@ -210,7 +229,18 @@ export default function BookAppointment() {
               </div>
             )}
 
-            {/* Reason */}
+            <div className="form-group">
+              <label className="form-label">Phone Number <span style={{ color: 'var(--danger)' }}>*</span></label>
+              <input
+                className="input-field"
+                type="tel"
+                placeholder="e.g. 0771234567"
+                value={form.patientPhone}
+                onChange={e => setForm(f => ({ ...f, patientPhone: e.target.value }))}
+                required
+              />
+            </div>
+
             <div className="form-group">
               <label className="form-label">Reason for Visit</label>
               <textarea
@@ -222,7 +252,58 @@ export default function BookAppointment() {
               />
             </div>
 
-            {/* Booking summary */}
+            <div className="form-group">
+              <label className="form-label">Upload Reports / Images <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 400 }}>(optional, max 5)</span></label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+                id="report-upload"
+              />
+              <label
+                htmlFor="report-upload"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  padding: '9px 18px', borderRadius: 'var(--radius-sm)',
+                  border: '1.5px dashed var(--border)', cursor: 'pointer',
+                  fontSize: '0.88rem', color: 'var(--text-muted)',
+                  background: 'var(--surface-2)', transition: 'all 0.15s',
+                }}
+              >
+                📎 Choose images
+              </label>
+              {form.reportImages.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>
+                  {form.reportImages.map((img, idx) => (
+                    <div key={idx} style={{ position: 'relative' }}>
+                      <img
+                        src={img}
+                        alt={`report-${idx}`}
+                        style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                        style={{
+                          position: 'absolute', top: -6, right: -6,
+                          width: 20, height: 20, borderRadius: '50%',
+                          background: 'var(--danger)', color: '#fff',
+                          border: 'none', cursor: 'pointer',
+                          fontSize: '0.7rem', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 700, lineHeight: 1,
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {form.selectedSlot && (
               <div style={{
                 background: 'var(--surface-2)', borderRadius: 'var(--radius-sm)',

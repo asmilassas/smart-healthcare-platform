@@ -1,5 +1,6 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './LandingPage.css'
 
@@ -19,6 +20,7 @@ const specialties = [
 
 export default function LandingPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { user } = useAuth()
 
   const handleGetStarted = () => {
@@ -27,6 +29,19 @@ export default function LandingPage() {
     if (user.role === 'doctor') return navigate('/doctor')
     if (user.role === 'admin') return navigate('/admin')
   }
+
+  useEffect(() => {
+    const appointmentId = searchParams.get('appointmentId')
+    const cancelled = searchParams.get('cancelled')
+
+    if (appointmentId) {
+      // PayHere redirected here instead of the result page
+      navigate(
+        `/patient/payment/result?appointmentId=${appointmentId}${cancelled ? '&cancelled=true' : ''}`,
+        { replace: true }
+      )
+    }
+  }, [])
 
   return (
     <div className="landing">

@@ -18,6 +18,14 @@ public class PaymentRequestDTO {
     @NotNull(message = "PatientId is required")
     private String patientId;
 
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    private String lastName;
+
+    @NotBlank(message = "Email is required")
+    private String email;
+
     // Getters & Setters
     public String getAppointmentId() {
         return appointmentId;
@@ -40,4 +48,16 @@ public class PaymentRequestDTO {
     public void setPatientId(String patientId) {
         this.patientId = patientId;
     }
+
+    public String getFirstName() { return firstName; }
+
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+
+    public String getLastName() { return lastName; }
+
+    public void setLastName(String lastName) { this.lastName = lastName; }
+
+    public String getEmail() { return email; }
+
+    public void setEmail(String email) { this.email = email; }
 }

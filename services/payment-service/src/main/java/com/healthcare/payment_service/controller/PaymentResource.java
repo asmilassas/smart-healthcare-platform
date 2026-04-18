@@ -52,6 +52,8 @@ public class PaymentResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the created payment in the body.
      */
     @PostMapping("/initiate")
+    @PreAuthorize("hasRole('PATIENT')")
+    //    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<PaymentInitiateResponseDTO> initiatePayment(@Valid @RequestBody PaymentRequestDTO paymentRequestDTO) {
         log.debug("REST request to initiate payment : {}", paymentRequestDTO);
 

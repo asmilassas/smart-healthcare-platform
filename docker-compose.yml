@@ -71,7 +71,6 @@ services:
     depends_on:
       - appointment-service
       - patient-service
-      - mongo
     environment:
       MONGO_URI: ${MONGO_URI_ATLAS}
       JWT_SECRET: ${JWT_SECRET}

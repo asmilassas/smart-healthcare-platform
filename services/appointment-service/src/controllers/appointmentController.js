@@ -1,8 +1,9 @@
 const axios = require("axios");
 const Appointment = require("../models/Appointment");
+const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || "http://notification-service:5002/api/notifications";
 
 const fetchDoctorInfo = async (doctorUserId, token) => {
-  const DOCTOR_SERVICE_URL = process.env.DOCTOR_SERVICE_URL || "http://127.0.0.1:5002";
+  const DOCTOR_SERVICE_URL = process.env.DOCTOR_SERVICE_URL || "http://127.0.0.1:5004";
   const response = await axios.get(
     `${DOCTOR_SERVICE_URL}/api/doctors/${doctorUserId}`,
     { headers: { Authorization: `Bearer ${token}` } }
@@ -10,8 +11,22 @@ const fetchDoctorInfo = async (doctorUserId, token) => {
   return response.data;
 };
 
+const fetchPatientInfo = async (patientId, token) => {
+  const PATIENT_SERVICE_URL = process.env.PATIENT_SERVICE_URL || "http://patient-service:5001";
+  try {
+    const response = await axios.get(
+      `${PATIENT_SERVICE_URL}/api/patients/${patientId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (err) {
+    console.error("fetchPatientInfo failed:", err.message);
+    return null;
+  }
+};
+
 const updateSlotStatus = async (doctorUserId, availability, token) => {
-  const DOCTOR_SERVICE_URL = process.env.DOCTOR_SERVICE_URL || "http://127.0.0.1:5002";
+  const DOCTOR_SERVICE_URL = process.env.DOCTOR_SERVICE_URL || "http://127.0.0.1:5004";
   await axios.put(
     `${DOCTOR_SERVICE_URL}/api/doctors/${doctorUserId}/availability`,
     { availability },
@@ -25,10 +40,12 @@ const bookAppointment = async (req, res) => {
     const {
       doctorId,
       patientName,
+      patientPhone,
       appointmentDate,
       timeSlot,
       type,
-      reasonForVisit
+      reasonForVisit,
+      reportImages
     } = req.body;
 
     if (!doctorId || !patientName || !appointmentDate || !timeSlot) {
@@ -37,9 +54,10 @@ const bookAppointment = async (req, res) => {
       });
     }
 
+    const token = req.headers.authorization.split(" ")[1];
+
     let doctor;
     try {
-      const token = req.headers.authorization.split(" ")[1];
       doctor = await fetchDoctorInfo(doctorId, token);
     } catch (err) {
       console.error("fetchDoctorInfo failed:", err.message);
@@ -74,9 +92,14 @@ const bookAppointment = async (req, res) => {
       return res.status(409).json({ message: "You already have an appointment at this time" });
     }
 
+    const patient = await fetchPatientInfo(req.user.id, token);
+
     const appointment = await Appointment.create({
       patientId: req.user.id,
       patientName,
+      patientEmail: patient?.email || null,
+      patientPhone: patientPhone || null,
+      reportImages: reportImages || [],
       doctorId,
       doctorName: doctor.fullName,
       specialty: doctor.specialty,
@@ -157,14 +180,26 @@ const respondToAppointment = async (req, res) => {
     if (!appointment) return res.status(404).json({ message: "Appointment not found" });
     if (appointment.doctorId !== req.user.id)
       return res.status(403).json({ message: "You can only respond to your own appointments" });
-    // Check if appointment has been paid for
-    if (appointment.paymentStatus !== "paid")
-      return res.status(400).json({ message: "Cannot complete unpaid appointment" });
     if (appointment.status !== "pending")
       return res.status(400).json({ message: `Cannot respond to an appointment with status '${appointment.status}'` });
     appointment.status = action === "confirm" ? "confirmed" : "cancelled";
     if (doctorNotes) appointment.doctorNotes = doctorNotes;
     await appointment.save();
+
+    // Send confirmation or cancellation email to patient
+    if (appointment.patientEmail) {
+      const formattedDate = new Date(appointment.appointmentDate).toLocaleDateString("en-LK", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      });
+      axios.post(`${NOTIFICATION_SERVICE_URL}/appointment-confirmation`, {
+        to: appointment.patientEmail,
+        patientName: appointment.patientName,
+        doctorName: appointment.doctorName,
+        appointmentDate: formattedDate,
+        appointmentTime: appointment.timeSlot?.startTime
+      }).catch(err => console.error("Failed to send appointment notification:", err.message));
+    }
+
     res.status(200).json({ message: `Appointment ${appointment.status} successfully`, appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -230,6 +265,22 @@ const attachVideoRoom = async (req, res) => {
       req.params.id, { videoRoomId }, { new: true }
     );
     if (!appointment) return res.status(404).json({ message: "Appointment not found" });
+
+    // Send meeting link to patient
+    if (appointment.patientEmail) {
+      const formattedDate = new Date(appointment.appointmentDate).toLocaleDateString("en-LK", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      });
+      axios.post(`${NOTIFICATION_SERVICE_URL}/consultation-reminder`, {
+        to: appointment.patientEmail,
+        patientName: appointment.patientName,
+        doctorName: appointment.doctorName,
+        appointmentDate: formattedDate,
+        appointmentTime: appointment.timeSlot?.startTime,
+        meetingLink: `https://meet.jit.si/${videoRoomId}`
+      }).catch(err => console.error("Failed to send meeting link notification:", err.message));
+    }
+
     res.status(200).json({ message: "Video room attached", appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });

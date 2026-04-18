@@ -52,8 +52,6 @@ public class PaymentResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the created payment in the body.
      */
     @PostMapping("/initiate")
-    @PreAuthorize("isAuthenticated()")
-    //    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<PaymentInitiateResponseDTO> initiatePayment(@Valid @RequestBody PaymentRequestDTO paymentRequestDTO) {
         log.debug("REST request to initiate payment : {}", paymentRequestDTO);
 
@@ -92,8 +90,6 @@ public class PaymentResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the payment in the body.
      */
     @GetMapping("/{appointmentId}")
-    @PreAuthorize("isAuthenticated()")
-    //    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<PaymentResponseDTO> getPaymentStatus(@PathVariable String appointmentId) {
         log.debug("REST request to get payment status for appointmentId : {}", appointmentId);
 

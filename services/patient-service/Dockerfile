@@ -3,10 +3,10 @@ FROM node:22-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm install express mongoose dotenv cors nodemon
 
 COPY . .
 
 EXPOSE 5001
 
-CMD ["npm", "run", "dev"]
+CMD ["node", "src/server.js"]

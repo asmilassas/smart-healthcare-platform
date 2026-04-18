@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { api } from '../../utils/api'
+import { useAuth } from '../../context/AuthContext'
 
 const PAYHERE_CHECKOUT_URL = 'https://sandbox.payhere.lk/pay/checkout'
 
 export default function PaymentGateway() {
   const { state } = useLocation()
   const navigate  = useNavigate()
+  const { user } = useAuth()
 
-  // state passed from MyAppointments: { appointmentId, consultationFee, doctorName, specialty, appointmentDate, timeSlot, type }
+  // state passed from MyAppointments: { appointmentId, amount, doctorName, specialty, appointmentDate, timeSlot, type }
   const [initiating, setInitiating] = useState(true)
   const [error,      setError]      = useState('')
   const [payHereData, setPayHereData] = useState(null)   // PaymentInitiateResponseDTO fields
@@ -25,11 +27,12 @@ export default function PaymentGateway() {
   // Call initiate on mount, then auto-submit the PayHere form
   useEffect(() => {
     if (!state?.appointmentId) return
+    if (!user) return
 
     api.initiatePayment({
       appointmentId: state.appointmentId,
-      amount:        state.consultationFee,
-      patientId:     state.patientId
+      amount:        state.amount,
+      patientId:     user.id
     })
       .then(res => {
         setPayHereData(res.data)
@@ -40,7 +43,7 @@ export default function PaymentGateway() {
         setError(msg)
         setInitiating(false)
       })
-  }, [])   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user])   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Once payHereData is set and form is rendered, submit it automatically
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function PaymentGateway() {
 
   if (!state?.appointmentId) return null
 
-  const { appointmentId, consultationFee, doctorName, specialty, appointmentDate, timeSlot, type } = state
+  const { appointmentId, amount, doctorName, specialty, appointmentDate, timeSlot, type } = state
 
   const rows = [
     ['Doctor',    doctorName],
@@ -107,7 +110,7 @@ export default function PaymentGateway() {
           <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 14, marginTop: 2 }}>
             <span style={{ fontWeight: 700, fontSize: '1rem' }}>Total Due</span>
             <span style={{ fontWeight: 700, fontSize: '1.15rem', color: 'var(--accent)' }}>
-              LKR {Number(consultationFee).toLocaleString()}
+              LKR {Number(amount).toLocaleString()}
             </span>
           </div>
         </div>
@@ -152,19 +155,19 @@ export default function PaymentGateway() {
             <input type="hidden" name="merchant_id"  value={payHereData.merchantId  ?? ''} />
             <input type="hidden" name="return_url" value={payHereData.returnUrl ?? ''} />
             <input type="hidden" name="cancel_url" value={payHereData.cancelUrl ?? ''} />
-            <input type="hidden" name="notify_url"   value={payHereData.notifyUrl   ?? ''} />
-            <input type="hidden" name="order_id"     value={payHereData.orderId     ?? ''} />
-            <input type="hidden" name="items"        value={payHereData.item        ?? 'Appointment Fee'} />
-            <input type="hidden" name="currency"     value={payHereData.currency    ?? 'LKR'} />
-            <input type="hidden" name="amount"       value={payHereData.amount      ?? ''} />
-            <input type="hidden" name="first_name"   value={payHereData.firstname   ?? 'Patient'} />
-            <input type="hidden" name="last_name"    value={payHereData.lastname    ?? ''} />
-            <input type="hidden" name="email"        value={payHereData.email       ?? ''} />
-            <input type="hidden" name="phone"        value={payHereData.contactNumber ?? ''} />
-            <input type="hidden" name="address"      value="N/A" />
-            <input type="hidden" name="city"         value="Colombo" />
-            <input type="hidden" name="country"      value="Sri Lanka" />
-            <input type="hidden" name="hash"         value={payHereData.hash        ?? ''} />
+            <input type="hidden" name="notify_url" value={payHereData.notifyUrl   ?? ''} />
+            <input type="hidden" name="order_id" value={payHereData.orderId     ?? ''} />
+            <input type="hidden" name="items" value={payHereData.item        ?? 'Appointment Fee'} />
+            <input type="hidden" name="currency" value={payHereData.currency    ?? 'LKR'} />
+            <input type="hidden" name="amount" value={payHereData.amount      ?? ''} />
+            <input type="hidden" name="first_name" value={payHereData.firstname   ?? 'Patient'} />
+            <input type="hidden" name="last_name" value={payHereData.lastname    ?? ''} />
+            <input type="hidden" name="email" value={payHereData.email       ?? ''} />
+            <input type="hidden" name="phone" value={payHereData.contactNumber ?? ''} />
+            <input type="hidden" name="address" value="N/A" />
+            <input type="hidden" name="city" value="Colombo" />
+            <input type="hidden" name="country" value="Sri Lanka" />
+            <input type="hidden" name="hash" value={payHereData.hash        ?? ''} />
           </form>
         )}
 

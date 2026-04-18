@@ -12,6 +12,9 @@ import com.healthcare.payment_service.service.dto.PaymentResponseDTO;
 import com.healthcare.payment_service.service.mapper.PaymentInitiateResponseMapper;
 import com.healthcare.payment_service.service.mapper.PaymentMapper;
 import com.healthcare.payment_service.validation.PaymentValidation;
+
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -96,13 +99,14 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponseDTO getPaymentStatus(final String appointmentId) {
-        log.info("Request to get payment status for appointmentId : {}", appointmentId);
+public PaymentResponseDTO getPaymentStatus(final String appointmentId) {
+    final List<Payment> payments = paymentRepository
+            .findAllByAppointmentIdOrderByCreatedAtDesc(appointmentId);
 
-        final Payment payment = paymentRepository
-                .findByAppointmentId(appointmentId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found for appointmentId: " + appointmentId));
-
-        return paymentMapper.toPaymentResponseDTO(payment);
+    if (payments.isEmpty()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found for appointmentId: " + appointmentId);
     }
+
+    return paymentMapper.toPaymentResponseDTO(payments.get(0));
+}
 }

@@ -49,10 +49,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String username = claims.getSubject();
 
         // Extract roles
-        final List<String> roles = claims.get("roles", List.class);
-        final List<SimpleGrantedAuthority> authorities = roles == null
+        final String role = claims.get("role", String.class);
+        final List<SimpleGrantedAuthority> authorities = role == null
                 ? List.of()
-                : roles.stream().map(SimpleGrantedAuthority::new).toList();
+                : List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
 
         final UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(username, null, authorities);

@@ -6,11 +6,10 @@ services:
       - "5000:5000"
     environment:
       PORT: 5000
-      MONGO_URI: mongodb://mongo:27017/auth_db
-      JWT_SECRET: supersecretkey
+      MONGO_URI: ${MONGO_URI_ATLAS}
+      JWT_SECRET: ${JWT_SECRET} 
+      PATIENT_SERVICE_URL: http://patient-service:5001
       NOTIFICATION_SERVICE_URL: http://notification-service:5002/api/notifications
-    depends_on:
-      - mongo
 
   patient-service:
     build: ./services/patient-service
@@ -19,9 +18,7 @@ services:
       - "5001:5001"
     environment:
       PORT: 5001
-      MONGO_URI: mongodb://mongo:27017/patient_db
-    depends_on:
-      - mongo
+      MONGO_URI: ${MONGO_URI_ATLAS}
 
   notification-service:
     build: ./services/notification-service
@@ -30,8 +27,32 @@ services:
       - "5002:5002"
     environment:
       PORT: 5002
-      EMAIL_USER: your_email@gmail.com
-      EMAIL_PASS: your_new_app_password
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+
+  doctor-service:
+    build: ./services/doctor-management-service
+    container_name: doctor-service
+    ports:
+      - "5004:5004"
+    environment:
+      PORT: 5004
+      MONGO_URI: ${MONGO_URI_ATLAS}
+      JWT_SECRET: ${JWT_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:5000
+
+  appointment-service:
+    build: ./services/appointment-service
+    container_name: appointment-service
+    ports:
+      - "5005:5005"
+    environment:
+      PORT: 5005
+      MONGO_URI: ${MONGO_URI_ATLAS}
+      JWT_SECRET: ${JWT_SECRET}
+      DOCTOR_SERVICE_URL: http://doctor-service:5004
+      PATIENT_SERVICE_URL: http://patient-service:5001
+      NOTIFICATION_SERVICE_URL: http://notification-service:5002/api/notifications
 
   telemedicine-service:
     build: ./services/telemedicine-service
@@ -40,9 +61,7 @@ services:
       - "5003:5003"
     environment:
       PORT: 5003
-      MONGO_URI: mongodb://mongo:27017/telemedicine_db
-    depends_on:
-      - mongo
+      MONGO_URI: ${MONGO_URI_ATLAS}
 
   payment-service:
     build: ./services/payment-service
@@ -55,26 +74,15 @@ services:
       PAYHERE_MERCHANT_ID: ${PAYHERE_MERCHANT_ID}
       PAYHERE_MERCHANT_SECRET: ${PAYHERE_MERCHANT_SECRET}
       NOTIFY_URL: ${NOTIFY_URL}
-      APPOINTMENT_SERVICE_URL: http://appointments-service:5003
+      APPOINTMENT_SERVICE_URL: http://appointment-service:5005
       PATIENT_SERVICE_URL: http://patient-service:5001
 
   ai-symptom-checker:
-    build: ./services/ai-symptom-checker
-    container_name: ai-symptom-checker
+    build: ./services/ai-symptom-service
+    container_name: ai-symptom-service
     ports:
       - "8084:8084"
     environment:
       MONGO_URI: ${MONGO_URI_ATLAS}
       JWT_SECRET: ${JWT_SECRET}
       GROQ_API_KEY: ${GROQ_API_KEY}
-
-  mongo:
-    image: mongo:latest
-    container_name: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-volumes:
-  mongo_data:

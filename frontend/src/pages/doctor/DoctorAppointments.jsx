@@ -15,6 +15,7 @@ export default function DoctorAppointments() {
   const [filter, setFilter] = useState('all')
   const [actionId, setActionId] = useState(null)
   const [error, setError] = useState('')
+  const [expandedImage, setExpandedImage] = useState(null)
 
   const fetchAppts = () => {
     setLoading(true)
@@ -105,8 +106,13 @@ export default function DoctorAppointments() {
                         {new Date(a.appointmentDate).toLocaleDateString('en-LK', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}
                         &nbsp;·&nbsp;{a.timeSlot?.startTime} – {a.timeSlot?.endTime}
                       </div>
+                      {a.patientPhone && (
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                          📞 {a.patientPhone}
+                        </div>
+                      )}
                       {a.reasonForVisit && (
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 3 }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>
                           Reason: {a.reasonForVisit}
                         </div>
                       )}
@@ -123,6 +129,29 @@ export default function DoctorAppointments() {
                   </div>
                 </div>
 
+                {a.reportImages?.length > 0 && (
+                  <div style={{ marginTop: 14 }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+                      Patient Reports
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      {a.reportImages.map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt={`report-${idx}`}
+                          onClick={() => setExpandedImage(img)}
+                          style={{
+                            width: 72, height: 72, objectFit: 'cover',
+                            borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)',
+                            cursor: 'pointer',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {a.status === 'pending' && (
                     <>
@@ -136,7 +165,12 @@ export default function DoctorAppointments() {
                   )}
                   {a.status === 'confirmed' && (
                     <>
-                      <button className="btn btn-primary btn-sm" onClick={() => complete(a._id)} disabled={actionId === a._id}>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => complete(a._id)}
+                        disabled={actionId === a._id || a.paymentStatus !== 'paid'}
+                        title={a.paymentStatus !== 'paid' ? 'Payment must be completed first' : ''}
+                      >
                         ✓ Mark Complete
                       </button>
                       {!a.prescriptionId && (
@@ -163,6 +197,23 @@ export default function DoctorAppointments() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {expandedImage && (
+          <div
+            onClick={() => setExpandedImage(null)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              zIndex: 1000, cursor: 'pointer',
+            }}
+          >
+            <img
+              src={expandedImage}
+              alt="report"
+              style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 8, objectFit: 'contain' }}
+            />
           </div>
         )}
       </div>

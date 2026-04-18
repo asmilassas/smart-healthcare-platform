@@ -157,9 +157,6 @@ const respondToAppointment = async (req, res) => {
     if (!appointment) return res.status(404).json({ message: "Appointment not found" });
     if (appointment.doctorId !== req.user.id)
       return res.status(403).json({ message: "You can only respond to your own appointments" });
-    // Check if appointment has been paid for
-    if (appointment.paymentStatus !== "paid")
-      return res.status(400).json({ message: "Cannot complete unpaid appointment" });
     if (appointment.status !== "pending")
       return res.status(400).json({ message: `Cannot respond to an appointment with status '${appointment.status}'` });
     appointment.status = action === "confirm" ? "confirmed" : "cancelled";
@@ -195,6 +192,9 @@ const completeAppointment = async (req, res) => {
     if (!appointment) return res.status(404).json({ message: "Appointment not found" });
     if (appointment.doctorId !== req.user.id)
       return res.status(403).json({ message: "Access denied" });
+    // Check if appointment has been paid for
+    if (appointment.paymentStatus !== "paid")
+      return res.status(400).json({ message: "Cannot complete unpaid appointment" });
     if (appointment.status !== "confirmed")
       return res.status(400).json({ message: "Only confirmed appointments can be marked as completed" });
     appointment.status = "completed";

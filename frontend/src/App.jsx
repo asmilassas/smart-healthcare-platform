@@ -34,6 +34,7 @@ import SymptomChecker from './pages/patient/SymptomChecker'
 
 // Payment Gateway
 import PaymentGateway from './pages/patient/Paymentgateway'
+import PaymentResult from './pages/patient/PaymentResult'
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/patient/profile" element={<ProtectedRoute roles={['patient']}><PatientProfile /></ProtectedRoute>} />
         <Route path="/patient/symptom-checker" element={<SymptomChecker />} />
         <Route path="/patient/payment" element={<PaymentGateway />} />
+        <Route path="/patient/payment/result" element={<PaymentResult />} />
 
         {/* Doctor */}
         <Route path="/doctor" element={<ProtectedRoute roles={['doctor']}><DoctorDashboard /></ProtectedRoute>} />

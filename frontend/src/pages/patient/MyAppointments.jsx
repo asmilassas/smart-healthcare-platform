@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import { api } from '../../utils/api'
 
 const STATUS_FILTERS = ['all', 'pending', 'confirmed', 'completed', 'cancelled']
@@ -12,6 +13,7 @@ function extractList(data) {
 
 export default function MyAppointments() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -45,12 +47,14 @@ export default function MyAppointments() {
     navigate('/patient/payment', {
       state: {
         appointmentId:   a._id,
-        amount:          a.consultationFee,
+        consultationFee:          a.consultationFee,
         doctorName:      a.doctorName,
         specialty:       a.specialty,
         appointmentDate: a.appointmentDate,
         timeSlot:        a.timeSlot,
         type:            a.type,
+        patientId:       user?.id,
+        patientName:     user?.name,
       },
     })
   }

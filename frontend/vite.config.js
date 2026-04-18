@@ -17,12 +17,12 @@ export default defineConfig({
         secure: false,
       },
       '^/api/doctors(/.*)?$': {
-        target: 'http://127.0.0.1:5002',
+        target: 'http://127.0.0.1:5004',
         changeOrigin: true,
         secure: false,
       },
       '^/api/appointments(/.*)?$': {
-        target: 'http://127.0.0.1:5003',
+        target: 'http://127.0.0.1:5005',
         changeOrigin: true,
         secure: false,
       },

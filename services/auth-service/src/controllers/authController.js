@@ -49,7 +49,7 @@ const registerUser = async (req, res) => {
         email: email,
         phone: '',
         dateOfBirth: null,
-        gender: '',
+        gender: 'other',
         address: '',
         bloodGroup: ''
     }).catch(err => console.error('Failed to create patient profile:', err.message));

@@ -15,12 +15,12 @@ const generateOTP = () => {
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    const role = "patient";
-
-    if (!name || !email || !password) {
-  return res.status(400).json({ message: "Name, email, and password are required" });
-  }
+    const { name, email, password, role } = req.body;
+  
+    const allowedRoles = ["patient", "doctor"];
+    if (!role || !allowedRoles.includes(role)) {
+      return res.status(400).json({ message: "Role must be either 'patient' or 'doctor'" });
+    }
 
     const existingUser = await User.findOne({ email });
 
@@ -40,6 +40,20 @@ const registerUser = async (req, res) => {
       otp,
       otpExpires: new Date(Date.now() + 10 * 60 * 1000)
     });
+
+    if (role === 'patient') {
+      const PATIENT_SERVICE_URL = process.env.PATIENT_SERVICE_URL || 'http://patient-service:5001';
+      axios.post(`${PATIENT_SERVICE_URL}/api/patients`, {
+        userId: user._id.toString(),
+        fullName: name,
+        email: email,
+        phone: '',
+        dateOfBirth: null,
+        gender: '',
+        address: '',
+        bloodGroup: ''
+    }).catch(err => console.error('Failed to create patient profile:', err.message));
+  }
 
     await axios.post(`${process.env.NOTIFICATION_SERVICE_URL}/send-email`, {
       to: email,

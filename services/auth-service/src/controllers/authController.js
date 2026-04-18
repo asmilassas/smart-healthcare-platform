@@ -16,10 +16,14 @@ const generateOTP = () => {
 const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-  
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ message: "Name, email, password, and role are required" });
+    }
+
     const allowedRoles = ["patient", "doctor"];
-    if (!role || !allowedRoles.includes(role)) {
-      return res.status(400).json({ message: "Role must be either 'patient' or 'doctor'" });
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ message: "Role must be patient or doctor" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -29,16 +33,13 @@ const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const otp = generateOTP();
 
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
       role,
-      isVerified: false,
-      otp,
-      otpExpires: new Date(Date.now() + 10 * 60 * 1000)
+      isVerified: true  // skip verification
     });
 
     if (role === 'patient') {
@@ -49,27 +50,22 @@ const registerUser = async (req, res) => {
         email: email,
         phone: '',
         dateOfBirth: null,
-        gender: '',
+        gender: 'other',
         address: '',
         bloodGroup: ''
-    }).catch(err => console.error('Failed to create patient profile:', err.message));
-  }
-
-    await axios.post(`${process.env.NOTIFICATION_SERVICE_URL}/send-email`, {
-      to: email,
-      subject: "Verify Your Account",
-      message: `Hello ${name}, your OTP for account verification is ${otp}. It will expire in 10 minutes.`
-    });
+      }).catch(err => console.error('Failed to create patient profile:', err.message));
+    }
 
     res.status(201).json({
-      message: "User registered successfully. OTP sent to email.",
+      message: "User registered successfully.",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         isVerified: user.isVerified
-      }
+      },
+      token: generateToken(user._id, user.role)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

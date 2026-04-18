@@ -6,8 +6,8 @@ services:
       - "5000:5000"
     environment:
       PORT: 5000
-      MONGO_URI: mongodb://mongo:27017/auth_db
-      JWT_SECRET: supersecretkey
+      MONGO_URI: ${MONGO_URI_ATLAS}
+      JWT_SECRET: ${JWT_SECRET}
       NOTIFICATION_SERVICE_URL: http://notification-service:5002/api/notifications
     depends_on:
       - mongo
@@ -19,7 +19,7 @@ services:
       - "5001:5001"
     environment:
       PORT: 5001
-      MONGO_URI: mongodb://mongo:27017/patient_db
+      MONGO_URI: ${MONGO_URI_ATLAS}
     depends_on:
       - mongo
 
@@ -32,6 +32,15 @@ services:
       PORT: 5002
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASS: ${EMAIL_PASS}
+
+  telemedicine-service:
+    build: ./services/telemedicine-service
+    container_name: telemedicine-service
+    ports:
+      - "5003:5003"
+    environment:
+      PORT: 5003
+      MONGO_URI: ${MONGO_URI_ATLAS}
 
   doctor-service:
     build: ./services/doctor-management-service
@@ -55,22 +64,15 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       DOCTOR_SERVICE_URL: http://doctor-service:5004
 
-  telemedicine-service:
-    build: ./services/telemedicine-service
-    container_name: telemedicine-service
-    ports:
-      - "5003:5003"
-    environment:
-      PORT: 5003
-      MONGO_URI: mongodb://mongo:27017/telemedicine_db
-    depends_on:
-      - mongo
-
   payment-service:
     build: ./services/payment-service
     container_name: payment-service
     ports:
       - "8083:8083"
+    depends_on:
+      - appointment-service
+      - patient-service
+      - mongo
     environment:
       MONGO_URI: ${MONGO_URI_ATLAS}
       JWT_SECRET: ${JWT_SECRET}
@@ -80,7 +82,7 @@ services:
       APPOINTMENT_SERVICE_URL: http://appointment-service:5005
       PATIENT_SERVICE_URL: http://patient-service:5001
 
-  ai-symptom-checker:
+  ai-symptom-service:
     build: ./services/ai-symptom-service
     container_name: ai-symptom-service
     ports:
@@ -89,9 +91,6 @@ services:
       MONGO_URI: ${MONGO_URI_ATLAS}
       JWT_SECRET: ${JWT_SECRET}
       GROQ_API_KEY: ${GROQ_API_KEY}
-
-
-
 
   mongo:
     image: mongo:latest

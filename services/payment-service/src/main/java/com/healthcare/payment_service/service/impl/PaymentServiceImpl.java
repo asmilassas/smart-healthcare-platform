@@ -100,7 +100,7 @@ public class PaymentServiceImpl implements PaymentService {
         log.info("Request to get payment status for appointmentId : {}", appointmentId);
 
         final Payment payment = paymentRepository
-                .findByAppointmentId(appointmentId)
+                .findFirstByAppointmentIdOrderByCreatedAtDesc(appointmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payment not found for appointmentId: " + appointmentId));
 
         return paymentMapper.toPaymentResponseDTO(payment);

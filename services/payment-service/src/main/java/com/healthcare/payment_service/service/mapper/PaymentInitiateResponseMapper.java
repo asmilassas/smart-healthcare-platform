@@ -52,32 +52,36 @@ public class PaymentInitiateResponseMapper {
             String cancelUrl = baseCancelUrl + "?appointmentId=" + appointmentId + "&cancelled=true";
 
             // Fetch patient details
-            PatientDTO patient = patientServiceClient.getPatientById(
-                    paymentRequestDTO.getPatientId()
-            );
+//            PatientDTO patient = patientServiceClient.getPatientById(
+//                    paymentRequestDTO.getPatientId()
+//            );
+//
+//            if (patient == null) {
+//                throw new IllegalStateException("Patient not found");
+//            }
+//
+//            String fullName = patient.getFullName();
+//
+//            String firstName = "";
+//            String lastName = "";
+//
+//            if (fullName != null && !fullName.trim().isEmpty()) {
+//                String trimmedName = fullName.trim();
+//
+//                int firstSpaceIndex = trimmedName.indexOf(" ");
+//
+//                if (firstSpaceIndex == -1) {
+//                    // Only one name
+//                    firstName = trimmedName;
+//                } else {
+//                    firstName = trimmedName.substring(0, firstSpaceIndex);
+//                    lastName = trimmedName.substring(firstSpaceIndex + 1);
+//                }
+//            }
 
-            if (patient == null) {
-                throw new IllegalStateException("Patient not found");
-            }
-
-            String fullName = patient.getFullName();
-
-            String firstName = "";
-            String lastName = "";
-
-            if (fullName != null && !fullName.trim().isEmpty()) {
-                String trimmedName = fullName.trim();
-
-                int firstSpaceIndex = trimmedName.indexOf(" ");
-
-                if (firstSpaceIndex == -1) {
-                    // Only one name
-                    firstName = trimmedName;
-                } else {
-                    firstName = trimmedName.substring(0, firstSpaceIndex);
-                    lastName = trimmedName.substring(firstSpaceIndex + 1);
-                }
-            }
+            String firstName = paymentRequestDTO.getFirstName();
+            String lastName = paymentRequestDTO.getLastName() != null
+                    ? paymentRequestDTO.getLastName() : "";
 
             paymentInitiateResponseDTO.setOrderId(payment.getId());
             paymentInitiateResponseDTO.setHash(
@@ -94,13 +98,8 @@ public class PaymentInitiateResponseMapper {
 
             paymentInitiateResponseDTO.setFirstname(firstName);
             paymentInitiateResponseDTO.setLastname(lastName);
-            paymentInitiateResponseDTO.setContactNumber(patient.getPhone());
-            paymentInitiateResponseDTO.setEmail(patient.getEmail());
-
-//            paymentInitiateResponseDTO.setFirstname("John");
-//            paymentInitiateResponseDTO.setLastname("Doe");
-//            paymentInitiateResponseDTO.setContactNumber("0771234567");
-//            paymentInitiateResponseDTO.setEmail("john@doe.com");
+            paymentInitiateResponseDTO.setContactNumber("0771234567");
+            paymentInitiateResponseDTO.setEmail(paymentRequestDTO.getEmail());
 
             paymentInitiateResponseDTO.setNotifyUrl(payHereUtil.getNotifyUrl());
             paymentInitiateResponseDTO.setReturnUrl(returnUrl);

@@ -3,6 +3,9 @@ package com.healthcare.payment_service.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,6 +32,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public UserDetailsService userDetailsService() {
+        return new InMemoryUserDetailsManager();
+    }
+
+    @Bean
     public WebClient.Builder webClientBuilder() {
         return WebClient.builder();
     }
@@ -43,11 +51,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 .authorizeHttpRequests(auth -> auth
-                        // PayHere calls directly
+                        // PayHere callback - public
                         .requestMatchers(HttpMethod.POST, "/api/payments/callback").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/payments/initiate").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/payments/**").permitAll()
-                        // All other requests requires a valid JWT
+                        .requestMatchers(HttpMethod.GET, "/api/payments/**").permitAll()
+                        // require PATIENT role
+                        .requestMatchers("/api/payments/**").hasRole("PATIENT")
                         .anyRequest().authenticated()
                 )
 
